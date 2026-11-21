@@ -43,6 +43,39 @@ export const Usuario = {
     `;
     return sedeId ? db.prepare(sql).all(sedeId) : db.prepare(sql).all();
   },
+
+  // --- CRUD ---
+  // all() para el listado de gestión: alias legibles que usa la vista.
+  all() {
+    return this.listar();
+  },
+  find(id) {
+    return db.prepare('SELECT * FROM usuario WHERE id = ?').get(id);
+  },
+  create(d) {
+    return db.prepare(`
+      INSERT INTO usuario (nombre, email, sede_id, rol_id, jornada_tipo_id, activo)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      d.nombre?.trim(), d.email?.trim() || null,
+      Number(d.sede_id), Number(d.rol_id), Number(d.jornada_tipo_id),
+      d.activo ? 1 : 0
+    );
+  },
+  update(id, d) {
+    return db.prepare(`
+      UPDATE usuario SET nombre = ?, email = ?, sede_id = ?, rol_id = ?,
+             jornada_tipo_id = ?, activo = ?
+      WHERE id = ?
+    `).run(
+      d.nombre?.trim(), d.email?.trim() || null,
+      Number(d.sede_id), Number(d.rol_id), Number(d.jornada_tipo_id),
+      d.activo ? 1 : 0, id
+    );
+  },
+  remove(id) {
+    return db.prepare('DELETE FROM usuario WHERE id = ?').run(id);
+  },
 };
 
 export default Usuario;

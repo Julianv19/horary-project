@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+
+<%
+  // ¿Es un alta (item vacío)? Para aplicar valores por defecto.
+  const esNuevo = !item || Object.keys(item).length === 0;
+  const valorDe = (f) => {
+    const v = item ? item[f.name] : undefined;
+    if (v !== undefined && v !== null) return v;
+    return esNuevo ? (f.default ?? '') : '';
+  };
+  const marcado = (f) => {
+    if (esNuevo) return !!f.default;
+    const v = item ? item[f.name] : undefined;
+    return !!v && v !== '0' && v !== 0;
+  };
+%>
+
+<section class="hero"><h1><%= titulo %></h1></section>
+
+<% if (error) { %>
+  <div class="alert err"><strong>No se pudo guardar:</strong> <%= error %></div>
+<% } %>
+
+<form method="post" action="<%= action %>" class="form-card">
+  <% fields.forEach(f => { %>
+    <div class="field">
+      <label for="<%= f.name %>">
+        <%= f.label %><% if (f.required) { %> <span class="req">*</span><% } %>
+      </label>
+
+      <% if (f.type === 'select') { %>
+        <select name="<%= f.name %>" id="<%= f.name %>" <%= f.required ? 'required' : '' %>>
+          <option value="">— Seleccionar —</option>
+          <% f.options.forEach(o => { %>
+            <option value="<%= o.value %>" <%= String(o.value) === String(valorDe(f)) ? 'selected' : '' %>>
+              <%= o.label %>
+            </option>
+          <% }) %>
+        </select>
+
+      <% } else if (f.type === 'checkbox') { %>
+        <input type="checkbox" name="<%= f.name %>" id="<%= f.name %>" value="1" <%= marcado(f) ? 'checked' : '' %>>
+
+      <% } else if (f.type === 'textarea') { %>
+        <textarea name="<%= f.name %>" id="<%= f.name %>" rows="3"><%= valorDe(f) %></textarea>
+
+      <% } else if (f.type === 'color') { %>
+        <input type="color" name="<%= f.name %>" id="<%= f.name %>" value="<%= valorDe(f) || '#cccccc' %>">
+
+      <% } else { %>
+        <input type="<%= f.type || 'text' %>" name="<%= f.name %>" id="<%= f.name %>"
+               value="<%= valorDe(f) %>"
+               <%= f.step ? `step=${f.step}` : '' %>
+               <%= f.required ? 'required' : '' %>>
+      <% } %>
+
+      <% if (f.help) { %><small class="help"><%= f.help %></small><% } %>
+    </div>
+  <% }) %>
+
+  <div class="form-actions">
+    <button type="submit" class="btn">Guardar</button>
+    <a class="btn ghost" href="<%= basePath %>">Cancelar</a>
+  </div>
+</form>
+
+<%- include('../partials/footer') %>

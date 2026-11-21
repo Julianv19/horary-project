@@ -10,7 +10,10 @@
   <header class="topbar">
     <div class="brand">🍗 <strong>Horary</strong><span>Project</span></div>
     <nav>
-      <a href="/" class="<%= currentPath === '/' ? 'active' : '' %>">Tablero</a>
+      <% (typeof menu !== 'undefined' ? menu : []).forEach(m => { %>
+        <% const act = m.basePath === '/' ? currentPath === '/' : currentPath.startsWith(m.basePath); %>
+        <a href="<%= m.basePath %>" class="<%= act ? 'active' : '' %>"><%= m.label %></a>
+      <% }) %>
     </nav>
   </header>
   <main class="container">

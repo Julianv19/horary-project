@@ -6,6 +6,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { env, isDev } from './config/env.js';
 import router from './routes/index.js';
+import resources from './config/resources.js';
+
+// Menú de navegación derivado de los recursos CRUD
+const menu = [
+  { basePath: '/', label: 'Tablero' },
+  ...Object.values(resources).map((r) => ({ basePath: r.basePath, label: r.plural })),
+];
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +31,7 @@ app.use(express.static(resolve(__dirname, 'public')));
 app.use((req, res, next) => {
   res.locals.appName = 'Horary Project';
   res.locals.currentPath = req.path;
+  res.locals.menu = menu;
   next();
 });
 
