@@ -1,0 +1,30 @@
+{
+  "name": "horary-project",
+  "version": "0.1.0",
+  "description": "Sistema MVC para administrar horarios y aforo de un restaurante (Node + Express + EJS + SQLite)",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "db:init": "node db/init.js",
+    "db:reset": "node db/init.js --reset"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "keywords": [
+    "horarios",
+    "aforo",
+    "restaurante",
+    "mvc",
+    "express"
+  ],
+  "author": "Julianv19",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2"
+  }
+}

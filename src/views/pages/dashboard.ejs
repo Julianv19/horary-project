@@ -1,0 +1,85 @@
+<%- include('../partials/header') %>
+
+<section class="hero">
+  <h1>Tablero de horarios</h1>
+  <form method="get" action="/" class="sede-select">
+    <label for="sede">Sede:</label>
+    <select name="sede" id="sede" onchange="this.form.submit()">
+      <% sedes.forEach(s => { %>
+        <option value="<%= s.id %>" <%= s.id === sedeId ? 'selected' : '' %>><%= s.nombre %></option>
+      <% }) %>
+    </select>
+  </form>
+</section>
+
+<section class="cards">
+  <div class="card">
+    <span class="card-num"><%= totalColaboradores %></span>
+    <span class="card-label">Colaboradores</span>
+  </div>
+  <div class="card">
+    <span class="card-num"><%= jornadas.length %></span>
+    <span class="card-label">Tipos de jornada</span>
+  </div>
+  <div class="card">
+    <span class="card-num"><%= contarPorArea.length %></span>
+    <span class="card-label">Áreas con personal</span>
+  </div>
+</section>
+
+<section>
+  <h2>Colaboradores por área y rol</h2>
+  <p class="muted">Lista única discriminada por rol (base del aforo por cobertura).</p>
+
+  <% grupos.forEach(grupo => { %>
+    <div class="area-block">
+      <h3 class="area-title"><%= grupo.area %></h3>
+      <% grupo.roles.forEach(r => { %>
+        <div class="rol-row">
+          <span class="rol-chip" style="background: <%= r.color %>"><%= r.rol %></span>
+          <span class="rol-count"><%= r.personas.length %></span>
+          <ul class="personas">
+            <% r.personas.forEach(p => { %>
+              <li>
+                <%= p.nombre %>
+                <span class="jornada-tag" title="<%= p.jornada %>"><%= p.jornada_codigo %></span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      <% }) %>
+    </div>
+  <% }) %>
+</section>
+
+<section class="jornadas">
+  <h2>Reglas de jornada</h2>
+  <table>
+    <thead>
+      <tr><th>Código</th><th>Nombre</th><th>Horas/día</th><th>Horas/semana</th><th>Días</th></tr>
+    </thead>
+    <tbody>
+      <% jornadas.forEach(j => { %>
+        <tr>
+          <td><strong><%= j.codigo %></strong></td>
+          <td><%= j.nombre %></td>
+          <td>
+            <% if (j.horas_dia_exactas) { %>
+              <%= j.horas_dia_exactas %> exactas
+            <% } else if (j.horas_dia_min || j.horas_dia_max) { %>
+              <%= j.horas_dia_min ?? '–' %>–<%= j.horas_dia_max ?? '–' %>
+            <% } else { %>–<% } %>
+          </td>
+          <td>
+            <% if (j.horas_sem_min || j.horas_sem_max) { %>
+              <%= j.horas_sem_min ?? '–' %>–<%= j.horas_sem_max ?? '–' %>
+            <% } else { %>flexible<% } %>
+          </td>
+          <td><%= j.dias_trabajo %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<%- include('../partials/footer') %>
