@@ -12,6 +12,8 @@ import resources from './config/resources.js';
 const menu = [
   { basePath: '/', label: 'Tablero' },
   ...Object.values(resources).map((r) => ({ basePath: r.basePath, label: r.plural })),
+  { basePath: '/cobertura', label: 'Cobertura' },
+  { basePath: '/aforo', label: 'Aforo' },
 ];
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

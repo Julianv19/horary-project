@@ -143,6 +143,36 @@ td.acciones form { margin: 0; }
 .form-actions { display: flex; gap: .75rem; margin-top: 1rem; }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 
+/* --- Barra de herramientas (selección de sede/día/semana) --- */
+.toolbar { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .9rem; }
+.toolbar select, .toolbar input[type=date] { padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 6px; }
+
+/* --- Tablas tipo cuadrícula (cobertura / horario) --- */
+.scroll-x { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table.grid { border-collapse: collapse; width: max-content; min-width: 100%; box-shadow: none; border-radius: 0; }
+table.grid th, table.grid td { border: 1px solid var(--line); padding: .3rem .45rem; text-align: center; font-size: .85rem; white-space: nowrap; }
+table.grid thead th { background: #fafafa; position: sticky; top: 0; }
+table.grid .sticky { position: sticky; left: 0; background: var(--surface); text-align: left; z-index: 1; }
+table.grid thead th.sticky { z-index: 2; }
+table.grid .num { text-align: center; }
+input.cel { width: 44px; padding: .25rem; text-align: center; border: 1px solid var(--line); border-radius: 4px; }
+
+.rol-chip.sm { font-size: .68rem; padding: .1rem .4rem; }
+
+/* Celdas de cobertura */
+.cell { font-weight: 600; }
+td.cell.gap  { background: #fdecec; color: #b4231f; }   /* falta personal */
+td.cell.over { background: #fff6e6; color: #9a6700; }   /* sobrecupo */
+td.cell.okc  { background: #e7f6ec; color: #1e7a3d; }   /* cubierto */
+.pill.cell { display: inline-block; }
+.pill.cell.gap  { background: #fdecec; color: #b4231f; }
+.pill.cell.over { background: #fff6e6; color: #9a6700; }
+.pill.cell.okc  { background: #e7f6ec; color: #1e7a3d; }
+table.grid tr.total td { background: #f1f1f3; font-weight: 700; }
+
+.chip { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin: 0 .15rem; border: 1px solid var(--line); }
+.chip.gap { background: #fdecec; } .chip.over { background: #fff6e6; } .chip.okc { background: #e7f6ec; }
+
 @media (max-width: 640px) {
   .rol-row { grid-template-columns: 1fr; }
 }

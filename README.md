@@ -33,11 +33,24 @@ Ver [`docs/CARACTERIZACION.md`](docs/CARACTERIZACION.md).
 ## Puesta en marcha
 
 ```bash
-npm install          # instala express, ejs, dotenv
-cp .env.example .env # crea tu configuración local
-npm run db:init      # crea la base de datos SQLite y carga datos de ejemplo
-npm run dev          # arranca en http://localhost:3000 (recarga en caliente)
+npm install                 # instala express, ejs, dotenv
+cp .env.example .env         # crea tu configuración local
+npm run db:init              # crea la base de datos SQLite y carga datos de ejemplo
+node db/seed_cobertura.js    # (opcional) carga cobertura de ejemplo para probar el aforo
+npm run dev                  # arranca en http://localhost:3000 (recarga en caliente)
 ```
+
+## Motor de aforo (por cobertura)
+
+1. **Cobertura** (`/cobertura`): define cuántas personas necesita cada rol por hora y día.
+2. **Aforo** (`/aforo`): elige sede y semana y pulsa *Generar*. El motor:
+   - calcula horas/día y días de trabajo de cada colaborador según su jornada,
+   - asigna 1 descanso semanal (repartido) y respeta a los de fin de semana,
+   - coloca un bloque contiguo por día que cubra la mayor demanda de su rol.
+3. **Horario** (`/aforo/ver`): muestra las horas por colaborador (con validación de
+   jornada) y la cobertura por hora (verde = cubierto, rojo = hueco, ámbar = sobrecupo).
+
+> Heurística voraz v1: bloques contiguos (sin turnos partidos todavía), no óptima pero auditable.
 
 ## Estructura (MVC)
 

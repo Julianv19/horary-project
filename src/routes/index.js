@@ -3,6 +3,8 @@ import { Router } from 'express';
 import * as dashboard from '../controllers/dashboardController.js';
 import { crudFactory, registrarRutas } from '../controllers/crudFactory.js';
 import resources from '../config/resources.js';
+import * as cobertura from '../controllers/coberturaController.js';
+import * as aforo from '../controllers/aforoController.js';
 
 const router = Router();
 
@@ -13,6 +15,15 @@ router.get('/', dashboard.index);
 for (const cfg of Object.values(resources)) {
   registrarRutas(router, cfg.basePath, crudFactory(cfg));
 }
+
+// --- Cobertura requerida ---
+router.get('/cobertura', cobertura.editor);
+router.post('/cobertura', cobertura.guardar);
+
+// --- Motor de aforo ---
+router.get('/aforo', aforo.index);
+router.post('/aforo/generar', aforo.generar);
+router.get('/aforo/ver', aforo.ver);
 
 // --- Healthcheck ---
 router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));

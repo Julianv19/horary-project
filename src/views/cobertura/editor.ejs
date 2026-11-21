@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Cobertura requerida</h1></section>
+<p class="muted">Personas necesarias por rol y hora. Es la base del motor de aforo.</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<form method="get" action="/cobertura" class="toolbar">
+  <label>Sede:
+    <select name="sede" onchange="this.form.submit()">
+      <% sedes.forEach(s => { %>
+        <option value="<%= s.id %>" <%= s.id === sedeId ? 'selected' : '' %>><%= s.nombre %></option>
+      <% }) %>
+    </select>
+  </label>
+  <label>Día:
+    <select name="dia" onchange="this.form.submit()">
+      <% DIAS.forEach((d, i) => { %>
+        <option value="<%= i %>" <%= i === dia ? 'selected' : '' %>><%= d %></option>
+      <% }) %>
+    </select>
+  </label>
+</form>
+
+<form method="post" action="/cobertura">
+  <input type="hidden" name="sede_id" value="<%= sedeId %>">
+  <input type="hidden" name="dia" value="<%= dia %>">
+
+  <div class="scroll-x">
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="sticky">Rol</th>
+          <% horas.forEach(h => { %><th><%= h %></th><% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% roles.forEach(r => { %>
+          <tr>
+            <td class="sticky">
+              <span class="swatch" style="background: <%= r.color %>"></span>
+              <%= r.nombre %> <small class="muted">· <%= r.area %></small>
+            </td>
+            <% horas.forEach(h => { %>
+              <td>
+                <input type="number" min="0" max="20" class="cel"
+                       name="c_<%= r.id %>_<%= h %>"
+                       value="<%= (matriz[r.id] && matriz[r.id][h]) ? matriz[r.id][h] : '' %>">
+              </td>
+            <% }) %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn">Guardar día</button>
+    <button type="submit" class="btn ghost" name="copiar_todos" value="1"
+            onclick="return confirm('Esto reemplazará la cobertura de los otros 6 días con la de este día. ¿Continuar?');">
+      Guardar y copiar a todos los días
+    </button>
+  </div>
+</form>
+
+<%- include('../partials/footer') %>

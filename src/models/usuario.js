@@ -52,6 +52,24 @@ export const Usuario = {
   find(id) {
     return db.prepare('SELECT * FROM usuario WHERE id = ?').get(id);
   },
+
+  // Colaboradores activos de una sede con TODAS las reglas de su jornada.
+  // Lo usa el motor de aforo.
+  paraProgramacion(sedeId) {
+    return db.prepare(`
+      SELECT  u.id, u.nombre, u.rol_id,
+              rol.nombre AS rol, area.nombre AS area, area.orden AS area_orden,
+              jt.codigo AS jornada_codigo, jt.nombre AS jornada,
+              jt.horas_dia_exactas, jt.horas_dia_min, jt.horas_dia_max,
+              jt.horas_sem_min, jt.horas_sem_max, jt.dias_trabajo
+      FROM usuario u
+      JOIN rol  ON rol.id = u.rol_id
+      JOIN area ON area.id = rol.area_id
+      JOIN jornada_tipo jt ON jt.id = u.jornada_tipo_id
+      WHERE u.sede_id = ? AND u.activo = 1
+      ORDER BY area.orden, rol.nombre, u.nombre
+    `).all(sedeId);
+  },
   create(d) {
     return db.prepare(`
       INSERT INTO usuario (nombre, email, sede_id, rol_id, jornada_tipo_id, activo)

@@ -1,0 +1,118 @@
+<%- include('../partials/header') %>
+
+<section class="hero">
+  <h1>Horario semanal</h1>
+</section>
+
+<form method="get" action="/aforo/ver" class="toolbar">
+  <label>Sede:
+    <select name="sede" onchange="this.form.submit()">
+      <% sedes.forEach(s => { %>
+        <option value="<%= s.id %>" <%= s.id === sedeId ? 'selected' : '' %>><%= s.nombre %></option>
+      <% }) %>
+    </select>
+  </label>
+  <label>Semana: <input type="date" name="semana" value="<%= semana %>" onchange="this.form.submit()"></label>
+  <a class="btn ghost" href="/aforo?sede=<%= sedeId %>&semana=<%= semana %>">⚙ Volver a generar</a>
+</form>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+
+<% if (!data) { %>
+  <div class="alert err">No hay horario generado para <strong><%= sede ? sede.nombre : 'esta sede' %></strong>
+    en la semana del <strong><%= semana %></strong>.</div>
+  <p><a class="btn" href="/aforo?sede=<%= sedeId %>&semana=<%= semana %>">Generar ahora</a></p>
+<% } else { %>
+
+  <p class="muted">Sede <strong><%= sede.nombre %></strong> · semana del <strong><%= semana %></strong>
+    (<%= fechas[0] %> → <%= fechas[6] %>).</p>
+
+  <!-- ===== Resumen de horas por colaborador ===== -->
+  <h2>Horas por colaborador</h2>
+  <div class="scroll-x">
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="sticky">Colaborador</th>
+          <th>Rol</th><th>Jorn.</th>
+          <% ['L','M','X','J','V','S','D'].forEach(d => { %><th><%= d %></th><% }) %>
+          <th>Sem.</th><th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% data.colaboradores.forEach(c => { %>
+          <tr>
+            <td class="sticky"><%= c.nombre %></td>
+            <td><span class="rol-chip sm" style="background: <%= c.color || '#ccc' %>"><%= c.rol %></span></td>
+            <td><%= c.jornada_codigo %></td>
+            <% c.dias.forEach(d => { %>
+              <td class="num">
+                <% if (d.trabaja) { %>
+                  <span title="<%= d.inicio %>–<%= d.fin %>"><%= d.horas %></span>
+                <% } else { %>
+                  <span class="muted">D</span>
+                <% } %>
+              </td>
+            <% }) %>
+            <td class="num"><strong><%= c.horasSemana %></strong></td>
+            <td>
+              <% const et = {ok:['okc','OK'], bajo:['over','Bajo'], alto:['gap','Alto']}[c.estadoJornada] || ['','—']; %>
+              <span class="pill cell <%= et[0] %>"><%= et[1] %></span>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted"><small>“D” = descanso. Estado compara las horas de la semana con el rango de la jornada
+    (TC debe cumplir 7 h exactas/día).</small></p>
+
+  <!-- ===== Cobertura por día ===== -->
+  <h2>Cobertura por hora (asignado / requerido)</h2>
+  <% data.porDia.forEach(dd => { %>
+    <h3 class="area-title"><%= dd.nombre %> <%= dd.fecha %>
+      <% if (dd.abierto) { %><small class="muted">· <%= dd.apertura %>–<%= dd.cierre %></small>
+      <% } else { %><small class="muted">· Cerrado</small><% } %>
+    </h3>
+    <% if (dd.abierto) { %>
+      <div class="scroll-x">
+        <table class="grid cov">
+          <thead>
+            <tr><th class="sticky">Área</th><% dd.horas.forEach(h => { %><th><%= h %></th><% }) %></tr>
+          </thead>
+          <tbody>
+            <% dd.filasArea.forEach(fa => { %>
+              <tr>
+                <td class="sticky"><%= fa.area %></td>
+                <% fa.requerido.forEach((req, i) => {
+                     const asg = fa.asignado[i];
+                     let cls = '';
+                     if (req === 0 && asg === 0) cls = '';
+                     else if (asg < req) cls = 'gap';
+                     else if (asg > req) cls = 'over';
+                     else cls = 'okc';
+                %>
+                  <td class="cell <%= cls %>"><%= asg %>/<%= req %></td>
+                <% }) %>
+              </tr>
+            <% }) %>
+            <tr class="total">
+              <td class="sticky">TOTAL</td>
+              <% dd.totalAsignado.forEach((a, i) => { %>
+                <td><%= a %>/<%= dd.totalRequerido[i] %></td>
+              <% }) %>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  <% }) %>
+
+  <p class="muted"><small>
+    <span class="chip gap"></span> hueco (falta personal) ·
+    <span class="chip over"></span> sobrecupo ·
+    <span class="chip okc"></span> cubierto exacto
+  </small></p>
+<% } %>
+
+<%- include('../partials/footer') %>

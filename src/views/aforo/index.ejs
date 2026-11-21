@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Motor de aforo</h1></section>
+<p class="muted">Genera automáticamente el horario de una semana cubriendo la cobertura requerida,
+respetando jornada, descanso y horario de la sede.</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<form method="post" action="/aforo/generar" class="form-card">
+  <div class="field">
+    <label for="sede_id">Sede</label>
+    <select name="sede_id" id="sede_id">
+      <% sedes.forEach(s => { %>
+        <option value="<%= s.id %>" <%= s.id === sedeId ? 'selected' : '' %>><%= s.nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="semana">Semana (se tomará el lunes)</label>
+    <input type="date" name="semana" id="semana" value="<%= semana %>">
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn">⚙ Generar aforo</button>
+  </div>
+</form>
+
+<% if (programaciones && programaciones.length) { %>
+  <h2>Semanas generadas</h2>
+  <table>
+    <thead><tr><th>Semana (lunes)</th><th>Estado</th><th>Creada</th><th></th></tr></thead>
+    <tbody>
+      <% programaciones.forEach(p => { %>
+        <tr>
+          <td><%= p.semana_inicio %></td>
+          <td><span class="pill <%= p.estado === 'PUBLICADA' ? 'yes' : 'no' %>"><%= p.estado %></span></td>
+          <td><%= p.creado_en %></td>
+          <td><a class="link" href="/aforo/ver?sede=<%= sedeId %>&semana=<%= p.semana_inicio %>">Ver horario →</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>
