@@ -13,6 +13,7 @@ import Cobertura from '../models/cobertura.js';
 import Horario from '../models/horario.js';
 import Programacion from '../models/programacion.js';
 import Descanso from '../models/descanso.js';
+import Ausencia from '../models/ausencia.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS } from '../lib/fechas.js';
 
 // ---- Reglas derivadas de la jornada ---------------------------------
@@ -37,14 +38,26 @@ function diasPermitidos(j) {
   return [0, 1, 2, 3, 4, 5, 6];
 }
 
-// Elige los días de descanso (reparte entre colaboradores con el índice).
-function diasDescanso(permitidos, diasTrabajo, idx) {
-  const descanso = Math.max(0, permitidos.length - diasTrabajo);
-  if (descanso === 0) return new Set();
-  // Preferimos descansar en días de menor demanda (lunes→jueves), rotando.
-  const preferencia = [0, 1, 2, 3, 4, 5, 6].filter((d) => permitidos.includes(d));
-  const rotados = preferencia.slice(idx % preferencia.length).concat(preferencia.slice(0, idx % preferencia.length));
-  return new Set(rotados.slice(0, descanso));
+// Orden de preferencia de días para descansar (menor demanda primero), rotado por idx.
+function ordenPreferencia(dias, idx) {
+  const pref = [0, 1, 2, 3, 4, 5, 6].filter((d) => dias.includes(d));
+  if (pref.length === 0) return [];
+  const k = idx % pref.length;
+  return pref.slice(k).concat(pref.slice(0, k));
+}
+
+// Construye usuario_id -> Set(diaIndex) para filas con rango [fecha_inicio, fecha_fin].
+function mapaDiasPorRango(rows, fechas) {
+  const m = new Map();
+  for (const r of rows) {
+    for (let i = 0; i < 7; i++) {
+      if (fechas[i] >= r.fecha_inicio && fechas[i] <= r.fecha_fin) {
+        if (!m.has(r.usuario_id)) m.set(r.usuario_id, new Set());
+        m.get(r.usuario_id).add(i);
+      }
+    }
+  }
+  return m;
 }
 
 // Mejor ventana contigua de longitud L que cubre más demanda pendiente.
@@ -75,27 +88,27 @@ export function generar(sedeId, semanaInicio) {
     forzados.get(d.usuario_id).add(dia);
   }
 
-  // Precalcular reglas por colaborador (respetando descansos solicitados)
+  // Ausencias (incapacidad/licencia/vacaciones/permiso) que caen en la semana.
+  const ausentes = mapaDiasPorRango(Ausencia.vigentesEnRango(sedeId, fechas[0], fechas[6]), fechas);
+
+  // Precalcular reglas por colaborador (ausencias y descansos tienen prioridad).
   const plan = colaboradores.map((c, idx) => {
     const permitidos = diasPermitidos(c);
     const target = horasObjetivoDia(c);
-    const necesita = Math.max(0, permitidos.length - (c.dias_trabajo || 6));
+    const fueraPorAusencia = ausentes.get(c.id) || new Set();
 
-    // Descanso: primero los días solicitados y aprobados, luego se completa.
-    const solicitados = new Set([...(forzados.get(c.id) || [])].filter((d) => permitidos.includes(d)));
-    const descanso = new Set(solicitados);
-    if (descanso.size < necesita) {
-      for (const d of diasDescanso(permitidos, c.dias_trabajo || 6, idx)) {
-        if (descanso.size >= necesita) break;
-        descanso.add(d);
-      }
-      for (const d of permitidos) {
-        if (descanso.size >= necesita) break;
-        descanso.add(d);
-      }
+    // Días candidatos a trabajar: permitidos menos ausencias (estas son absolutas).
+    const base = permitidos.filter((d) => !fueraPorAusencia.has(d));
+    const necesita = Math.max(0, base.length - (c.dias_trabajo || 6));
+
+    // Descanso: primero los solicitados y aprobados, luego por menor demanda.
+    const descanso = new Set([...(forzados.get(c.id) || [])].filter((d) => base.includes(d)));
+    for (const d of ordenPreferencia(base, idx)) {
+      if (descanso.size >= necesita) break;
+      descanso.add(d);
     }
 
-    const trabaja = permitidos.filter((d) => !descanso.has(d));
+    const trabaja = base.filter((d) => !descanso.has(d));
     return { c, target, trabaja: new Set(trabaja) };
   });
 
@@ -258,6 +271,15 @@ export function reporte(sedeId, semanaInicio) {
     });
   }
 
+  // Marcar días de ausencia (incapacidad/licencia/...) en el resumen por colaborador.
+  for (const a of Ausencia.vigentesEnRango(sedeId, fechas[0], fechas[6])) {
+    const colab = porColab.get(a.usuario_id);
+    if (!colab) continue;
+    for (let i = 0; i < 7; i++) {
+      if (fechas[i] >= a.fecha_inicio && fechas[i] <= a.fecha_fin) colab.dias[i].ausencia = a.tipo;
+    }
+  }
+
   // Compliance de jornada por colaborador
   const colabList = [...porColab.values()].sort(
     (a, b) => a.area_orden - b.area_orden || a.rol.localeCompare(b.rol) || a.nombre.localeCompare(b.nombre)
@@ -272,4 +294,25 @@ export function reporte(sedeId, semanaInicio) {
   return { programacion: prog, fechas, porDia, colaboradores: colabList };
 }
 
-export default { generar, reporte };
+// ---- Modificar una programación ya generada ante ausencias ----------
+// Quita de la semana ya generada los turnos que caen en una ausencia, para
+// que el administrador vea los huecos y los cubra (o regenere la semana).
+export function aplicarAusencias(sedeId, semanaInicio) {
+  const prog = Programacion.find(sedeId, semanaInicio);
+  if (!prog) return { sinProgramacion: true, eliminados: 0 };
+
+  const fechas = fechasSemana(semanaInicio);
+  const filas = Ausencia.vigentesEnRango(sedeId, fechas[0], fechas[6]);
+  let eliminados = 0;
+  for (const a of filas) {
+    for (let i = 0; i < 7; i++) {
+      if (fechas[i] >= a.fecha_inicio && fechas[i] <= a.fecha_fin) {
+        const r = Programacion.eliminarTurnosUsuarioFecha(prog.id, a.usuario_id, fechas[i]);
+        eliminados += r.changes || 0;
+      }
+    }
+  }
+  return { eliminados, programacion: prog };
+}
+
+export default { generar, reporte, aplicarAusencias };

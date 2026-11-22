@@ -6,6 +6,7 @@ import resources from '../config/resources.js';
 import * as cobertura from '../controllers/coberturaController.js';
 import * as aforo from '../controllers/aforoController.js';
 import * as descanso from '../controllers/descansoController.js';
+import * as ausencia from '../controllers/ausenciaController.js';
 
 const router = Router();
 
@@ -31,6 +32,12 @@ router.get('/descansos', descanso.index);
 router.post('/descansos', descanso.crear);
 router.post('/descansos/:id/estado', descanso.cambiarEstado);
 router.post('/descansos/:id/eliminar', descanso.eliminar);
+
+// --- Incapacidades / ausencias ---
+router.get('/incapacidades', ausencia.index);
+router.post('/incapacidades', ausencia.crear);
+router.post('/incapacidades/aplicar', ausencia.aplicar);
+router.post('/incapacidades/:id/eliminar', ausencia.eliminar);
 
 // --- Healthcheck ---
 router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));

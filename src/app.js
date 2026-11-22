@@ -15,6 +15,7 @@ const menu = [
   { basePath: '/cobertura', label: 'Cobertura' },
   { basePath: '/aforo', label: 'Aforo' },
   { basePath: '/descansos', label: 'Descansos' },
+  { basePath: '/incapacidades', label: 'Incapacidades' },
 ];
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

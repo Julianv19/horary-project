@@ -118,6 +118,11 @@ thead th { background: #fafafa; font-size: .85rem; text-transform: uppercase; le
 .pill { padding: .1rem .5rem; border-radius: 999px; font-size: .78rem; font-weight: 600; }
 .pill.yes { background: #e7f6ec; color: #1e7a3d; }
 .pill.no  { background: #f1f1f3; color: #6b7280; }
+.pill.t-inc { background: #fdecec; color: #b4231f; }
+.pill.t-lic { background: #e8effd; color: #1e4fb4; }
+.pill.t-vac { background: #e7f6ec; color: #1e7a3d; }
+.pill.t-per { background: #f1f1f3; color: #6b7280; }
+.aus { display: inline-block; font-size: .7rem; font-weight: 700; color: #b4231f; background: #fdecec; border-radius: 4px; padding: 0 .25rem; }
 .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; border: 1px solid var(--line); }
 
 /* --- Acciones en tabla --- */

@@ -29,6 +29,12 @@ export const Programacion = {
     return db.prepare('DELETE FROM turno WHERE programacion_id = ?').run(programacionId);
   },
 
+  eliminarTurnosUsuarioFecha(programacionId, usuarioId, fecha) {
+    return db.prepare(
+      'DELETE FROM turno WHERE programacion_id = ? AND usuario_id = ? AND fecha = ?'
+    ).run(programacionId, usuarioId, fecha);
+  },
+
   insertarTurno(t) {
     return db.prepare(`
       INSERT INTO turno (programacion_id, usuario_id, fecha, hora_inicio, hora_fin, orden)

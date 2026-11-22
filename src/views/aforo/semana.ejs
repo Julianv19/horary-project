@@ -49,6 +49,8 @@
               <td class="num">
                 <% if (d.trabaja) { %>
                   <span title="<%= d.inicio %>–<%= d.fin %>"><%= d.horas %></span>
+                <% } else if (d.ausencia) { %>
+                  <span class="aus" title="<%= d.ausencia %>"><%= d.ausencia.slice(0, 3) %></span>
                 <% } else { %>
                   <span class="muted">D</span>
                 <% } %>

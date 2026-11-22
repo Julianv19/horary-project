@@ -1,0 +1,95 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Incapacidades y ausencias</h1></section>
+<p class="muted">Registra incapacidades, licencias, vacaciones o permisos. El motor de aforo las
+respeta al generar, y puedes ajustar una semana ya generada con “Modificar programación”.</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<h2>Registrar ausencia</h2>
+<form method="post" action="/incapacidades" class="form-card inline">
+  <div class="field">
+    <label for="usuario_id">Colaborador <span class="req">*</span></label>
+    <select name="usuario_id" id="usuario_id" required>
+      <option value="">— Seleccionar —</option>
+      <% usuarios.forEach(u => { %>
+        <option value="<%= u.id %>"><%= u.nombre %> · <%= u.sede %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="tipo">Tipo <span class="req">*</span></label>
+    <select name="tipo" id="tipo" required>
+      <% tipos.forEach(t => { %><option value="<%= t %>"><%= t %></option><% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="fecha_inicio">Desde <span class="req">*</span></label>
+    <input type="date" name="fecha_inicio" id="fecha_inicio" required>
+  </div>
+  <div class="field">
+    <label for="fecha_fin">Hasta <span class="req">*</span></label>
+    <input type="date" name="fecha_fin" id="fecha_fin" required>
+  </div>
+  <div class="field">
+    <label for="motivo">Motivo</label>
+    <input type="text" name="motivo" id="motivo" placeholder="Opcional">
+  </div>
+  <div class="form-actions"><button type="submit" class="btn">Registrar</button></div>
+</form>
+
+<h2>Modificar programación ya generada</h2>
+<form method="post" action="/incapacidades/aplicar" class="form-card inline">
+  <div class="field">
+    <label for="sede_id">Sede</label>
+    <select name="sede_id" id="sede_id">
+      <% sedes.forEach(s => { %>
+        <option value="<%= s.id %>" <%= s.id === sedeId ? 'selected' : '' %>><%= s.nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="semana">Semana (lunes)</label>
+    <input type="date" name="semana" id="semana" value="<%= semana %>">
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn ghost">Quitar turnos afectados</button>
+  </div>
+</form>
+<p class="muted"><small>Retira de esa semana los turnos que caen en una ausencia y te lleva al
+horario para ver los huecos. (También puedes regenerar toda la semana desde <a href="/aforo">Aforo</a>.)</small></p>
+
+<h2>Ausencias registradas</h2>
+<% if (ausencias.length === 0) { %>
+  <p class="muted">No hay ausencias registradas.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr><th>Colaborador</th><th>Sede</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th class="acciones">Acciones</th></tr>
+    </thead>
+    <tbody>
+      <% ausencias.forEach(a => { %>
+        <tr>
+          <td><%= a.usuario %></td>
+          <td><%= a.sede %></td>
+          <td>
+            <% const cls = {INCAPACIDAD:'t-inc', LICENCIA:'t-lic', VACACIONES:'t-vac', PERMISO:'t-per'}[a.tipo] || ''; %>
+            <span class="pill <%= cls %>"><%= a.tipo %></span>
+          </td>
+          <td><%= a.fecha_inicio %></td>
+          <td><%= a.fecha_fin %></td>
+          <td><%= a.motivo || '—' %></td>
+          <td class="acciones">
+            <form method="post" action="/incapacidades/<%= a.id %>/eliminar"
+                  onsubmit="return confirm('¿Eliminar esta ausencia?');">
+              <button class="link danger" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>
