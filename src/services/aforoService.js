@@ -15,6 +15,7 @@ import Programacion from '../models/programacion.js';
 import Descanso from '../models/descanso.js';
 import Ausencia from '../models/ausencia.js';
 import Patron from '../models/patron.js';
+import Dominical from '../models/dominical.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS } from '../lib/fechas.js';
 
 // ---- Reglas derivadas de la jornada ---------------------------------
@@ -74,7 +75,7 @@ function mejorVentana(open, close, L, remHora) {
 }
 
 // ---- Generación -----------------------------------------------------
-export function generar(sedeId, semanaInicio) {
+export function generar(sedeId, semanaInicio, opciones = {}) {
   const colaboradores = Usuario.paraProgramacion(sedeId);
   const cobertura = Cobertura.mapaPorSede(sedeId); // [dia][hora][rol_id]
   const horarios = Horario.mapaPorSede(sedeId);    // [dia]={apertura,cierre}
@@ -98,6 +99,24 @@ export function generar(sedeId, semanaInicio) {
     patronDias.set(pid, Patron.turnosPorDia(pid));
   }
 
+  // Rotación de descanso dominical: en cada rol, descansa el domingo quien
+  // MENOS domingos ha descansado hasta ahora (solo trabajadores de semana completa).
+  const domingoDescanso = new Set();
+  if (opciones.rotarDomingos) {
+    const hist = Dominical.historialConteo(sedeId, semanaInicio);
+    const porRol = new Map();
+    for (const c of colaboradores) {
+      if (diasPermitidos(c).length < 7) continue;               // solo semana completa
+      if ((ausentes.get(c.id) || new Set()).has(6)) continue;   // ya ausente el domingo
+      if (c.patron_id) continue;                                // el patrón manda
+      (porRol.get(c.rol_id) || porRol.set(c.rol_id, []).get(c.rol_id)).push(c);
+    }
+    for (const lista of porRol.values()) {
+      lista.sort((a, b) => (hist.get(a.id) || 0) - (hist.get(b.id) || 0) || a.id - b.id);
+      if (lista.length) domingoDescanso.add(lista[0].id);
+    }
+  }
+
   // Precalcular reglas por colaborador. Ausencias y descansos tienen prioridad;
   // si tiene patrón, el patrón define los días y horas de trabajo.
   const plan = colaboradores.map((c, idx) => {
@@ -119,6 +138,8 @@ export function generar(sedeId, semanaInicio) {
     const base = permitidos.filter((d) => !fueraPorAusencia.has(d));
     const necesita = Math.max(0, base.length - (c.dias_trabajo || 6));
     const descanso = new Set([...solicitados].filter((d) => base.includes(d)));
+    // Descanso dominical rotado (domingo = día 6) tiene prioridad.
+    if (domingoDescanso.has(c.id) && base.includes(6)) descanso.add(6);
     for (const d of ordenPreferencia(base, idx)) {
       if (descanso.size >= necesita) break;
       descanso.add(d);

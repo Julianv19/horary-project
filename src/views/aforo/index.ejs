@@ -20,6 +20,12 @@ respetando jornada, descanso y horario de la sede.</p>
     <label for="semana">Semana (se tomará el lunes)</label>
     <input type="date" name="semana" id="semana" value="<%= semana %>">
   </div>
+  <div class="field">
+    <label class="check">
+      <input type="checkbox" name="rotar_domingos" value="1">
+      Rotar descanso dominical (descansa el domingo quien menos domingos ha descansado)
+    </label>
+  </div>
   <div class="form-actions">
     <button type="submit" class="btn">⚙ Generar aforo</button>
   </div>

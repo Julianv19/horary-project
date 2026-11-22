@@ -8,6 +8,7 @@ import * as aforo from '../controllers/aforoController.js';
 import * as descanso from '../controllers/descansoController.js';
 import * as ausencia from '../controllers/ausenciaController.js';
 import * as patron from '../controllers/patronController.js';
+import * as dominical from '../controllers/dominicalController.js';
 
 const router = Router();
 
@@ -50,6 +51,9 @@ router.post('/patrones/:id', patron.actualizar);
 router.post('/patrones/:id/eliminar', patron.eliminar);
 router.post('/patrones/:id/turnos', patron.addTurno);
 router.post('/patrones/:id/turnos/:tid/eliminar', patron.removeTurno);
+
+// --- Descansos dominicales ---
+router.get('/dominicales', dominical.index);
 
 // --- Healthcheck ---
 router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));

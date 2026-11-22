@@ -26,7 +26,7 @@ export function generar(req, res) {
   const sedeId = Number(req.body.sede_id);
   const semana = lunesDe(req.body.semana);
   try {
-    const { totalTurnos } = aforo.generar(sedeId, semana);
+    const { totalTurnos } = aforo.generar(sedeId, semana, { rotarDomingos: !!req.body.rotar_domingos });
     res.redirect(`/aforo/ver?sede=${sedeId}&semana=${semana}&ok=${encodeURIComponent(`Aforo generado: ${totalTurnos} turnos.`)}`);
   } catch (e) {
     res.redirect(`/aforo?sede=${sedeId}&semana=${semana}&err=${encodeURIComponent(e.message)}`);

@@ -1,0 +1,53 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Descansos dominicales</h1></section>
+<p class="muted">Quién trabajó (T) o descansó (D) cada domingo, calculado de los horarios generados.
+Sirve para repartir de forma justa el descanso dominical (ver opción “Rotar descanso dominical” al generar).</p>
+
+<form method="get" action="/dominicales" class="toolbar">
+  <label>Sede:
+    <select name="sede" onchange="this.form.submit()">
+      <% sedes.forEach(s => { %>
+        <option value="<%= s.id %>" <%= s.id === sedeId ? 'selected' : '' %>><%= s.nombre %></option>
+      <% }) %>
+    </select>
+  </label>
+  <label>Mes: <input type="month" name="mes" value="<%= mesStr %>" onchange="this.form.submit()"></label>
+</form>
+
+<% if (reporte.domingos.length === 0) { %>
+  <p class="muted">No hay domingos en el rango seleccionado.</p>
+<% } else { %>
+  <div class="scroll-x">
+    <table class="grid">
+      <thead>
+        <tr>
+          <th class="sticky">Colaborador</th>
+          <th>Rol</th>
+          <% reporte.domingos.forEach(dom => { %><th title="<%= dom %>"><%= Number(dom.slice(8,10)) %></th><% }) %>
+          <th>Descansos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% reporte.colaboradores.forEach(c => { %>
+          <tr>
+            <td class="sticky"><%= c.nombre %></td>
+            <td><%= c.rol %></td>
+            <% c.celdas.forEach(v => { %>
+              <td class="cell <%= v === 'D' ? 'okc' : (v === 'T' ? '' : '') %>">
+                <%= v === null ? '—' : v %>
+              </td>
+            <% }) %>
+            <td class="num"><strong><%= c.descansos %></strong></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted"><small>
+    <strong>T</strong> = trabajó · <strong>D</strong> = descansó ·
+    <strong>—</strong> = sin horario generado para esa semana.
+  </small></p>
+<% } %>
+
+<%- include('../partials/footer') %>

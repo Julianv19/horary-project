@@ -153,6 +153,8 @@ td.acciones form { margin: 0; }
 .form-card.inline { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; max-width: none; }
 .form-card.inline .field { margin-bottom: 0; }
 .form-card.inline .form-actions { margin-top: 0; }
+label.check { display: flex; align-items: center; gap: .5rem; font-weight: 400; font-size: .9rem; }
+label.check input { width: 18px; height: 18px; }
 
 /* --- Barra de herramientas (selección de sede/día/semana) --- */
 .toolbar { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .9rem; }
