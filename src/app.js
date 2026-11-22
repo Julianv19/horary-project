@@ -14,6 +14,7 @@ const menu = [
   ...Object.values(resources).map((r) => ({ basePath: r.basePath, label: r.plural })),
   { basePath: '/cobertura', label: 'Cobertura' },
   { basePath: '/aforo', label: 'Aforo' },
+  { basePath: '/patrones', label: 'Patrones' },
   { basePath: '/descansos', label: 'Descansos' },
   { basePath: '/incapacidades', label: 'Incapacidades' },
 ];

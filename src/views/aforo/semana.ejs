@@ -48,7 +48,7 @@
             <% c.dias.forEach(d => { %>
               <td class="num">
                 <% if (d.trabaja) { %>
-                  <span title="<%= d.inicio %>–<%= d.fin %>"><%= d.horas %></span>
+                  <span title="<%= (d.segmentos || []).join(' / ') %>"><%= d.horas %><% if ((d.segmentos||[]).length > 1) { %><sup>*</sup><% } %></span>
                 <% } else if (d.ausencia) { %>
                   <span class="aus" title="<%= d.ausencia %>"><%= d.ausencia.slice(0, 3) %></span>
                 <% } else { %>

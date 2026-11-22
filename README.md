@@ -50,7 +50,17 @@ npm run dev                  # arranca en http://localhost:3000 (recarga en cali
 3. **Horario** (`/aforo/ver`): muestra las horas por colaborador (con validación de
    jornada) y la cobertura por hora (verde = cubierto, rojo = hueco, ámbar = sobrecupo).
 
-> Heurística voraz v1: bloques contiguos (sin turnos partidos todavía), no óptima pero auditable.
+> Heurística voraz: bloques contiguos para quien no tiene patrón, no óptima pero auditable.
+
+## Patrones del administrador
+
+En **Patrones** (`/patrones`) el administrador define plantillas con turnos por día
+(varios bloques el mismo día = **turno partido**, p. ej. `12:00-16:00 / 18:00-22:00`).
+Se asignan a un colaborador desde su ficha (**Colaboradores**); si un colaborador tiene
+patrón, el motor sigue ese patrón en vez de la colocación automática.
+
+> Si actualizas desde una base anterior, ejecuta una vez `node db/migrate_patrones.js`
+> para añadir la columna `usuario.patron_id` y cargar patrones de ejemplo.
 
 ## Estructura (MVC)
 

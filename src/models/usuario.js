@@ -12,12 +12,15 @@ export const Usuario = {
               area.nombre        AS area,
               area.orden         AS area_orden,
               jornada_tipo.codigo AS jornada_codigo,
-              jornada_tipo.nombre AS jornada
+              jornada_tipo.nombre AS jornada,
+              u.patron_id         AS patron_id,
+              patron.nombre       AS patron
       FROM usuario u
       JOIN sede         ON sede.id = u.sede_id
       JOIN rol          ON rol.id = u.rol_id
       JOIN area         ON area.id = rol.area_id
       JOIN jornada_tipo ON jornada_tipo.id = u.jornada_tipo_id
+      LEFT JOIN patron ON patron.id = u.patron_id
     `;
     if (sedeId) {
       return db.prepare(base + ' WHERE u.sede_id = ? ORDER BY area.orden, rol.nombre, u.nombre').all(sedeId);
@@ -57,7 +60,7 @@ export const Usuario = {
   // Lo usa el motor de aforo.
   paraProgramacion(sedeId) {
     return db.prepare(`
-      SELECT  u.id, u.nombre, u.rol_id,
+      SELECT  u.id, u.nombre, u.rol_id, u.patron_id,
               rol.nombre AS rol, area.nombre AS area, area.orden AS area_orden,
               jt.codigo AS jornada_codigo, jt.nombre AS jornada,
               jt.horas_dia_exactas, jt.horas_dia_min, jt.horas_dia_max,
@@ -72,22 +75,24 @@ export const Usuario = {
   },
   create(d) {
     return db.prepare(`
-      INSERT INTO usuario (nombre, email, sede_id, rol_id, jornada_tipo_id, activo)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO usuario (nombre, email, sede_id, rol_id, jornada_tipo_id, patron_id, activo)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       d.nombre?.trim(), d.email?.trim() || null,
       Number(d.sede_id), Number(d.rol_id), Number(d.jornada_tipo_id),
+      d.patron_id ? Number(d.patron_id) : null,
       d.activo ? 1 : 0
     );
   },
   update(id, d) {
     return db.prepare(`
       UPDATE usuario SET nombre = ?, email = ?, sede_id = ?, rol_id = ?,
-             jornada_tipo_id = ?, activo = ?
+             jornada_tipo_id = ?, patron_id = ?, activo = ?
       WHERE id = ?
     `).run(
       d.nombre?.trim(), d.email?.trim() || null,
       Number(d.sede_id), Number(d.rol_id), Number(d.jornada_tipo_id),
+      d.patron_id ? Number(d.patron_id) : null,
       d.activo ? 1 : 0, id
     );
   },

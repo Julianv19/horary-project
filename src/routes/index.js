@@ -7,6 +7,7 @@ import * as cobertura from '../controllers/coberturaController.js';
 import * as aforo from '../controllers/aforoController.js';
 import * as descanso from '../controllers/descansoController.js';
 import * as ausencia from '../controllers/ausenciaController.js';
+import * as patron from '../controllers/patronController.js';
 
 const router = Router();
 
@@ -38,6 +39,16 @@ router.get('/incapacidades', ausencia.index);
 router.post('/incapacidades', ausencia.crear);
 router.post('/incapacidades/aplicar', ausencia.aplicar);
 router.post('/incapacidades/:id/eliminar', ausencia.eliminar);
+
+// --- Patrones de turnos ---
+router.get('/patrones', patron.index);
+router.get('/patrones/nuevo', patron.formNew);
+router.post('/patrones', patron.crear);
+router.get('/patrones/:id/editar', patron.formEdit);
+router.post('/patrones/:id', patron.actualizar);
+router.post('/patrones/:id/eliminar', patron.eliminar);
+router.post('/patrones/:id/turnos', patron.addTurno);
+router.post('/patrones/:id/turnos/:tid/eliminar', patron.removeTurno);
 
 // --- Healthcheck ---
 router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));

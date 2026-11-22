@@ -10,6 +10,7 @@ import Area from '../models/area.js';
 import Rol from '../models/rol.js';
 import Jornada from '../models/jornada.js';
 import Usuario from '../models/usuario.js';
+import Patron from '../models/patron.js';
 
 const opcionesSede = () =>
   Sede.activas().map((s) => ({ value: s.id, label: s.nombre }));
@@ -23,6 +24,9 @@ const opcionesRol = () =>
 const opcionesJornada = () =>
   Jornada.all().map((j) => ({ value: j.id, label: `${j.codigo} — ${j.nombre}` }));
 
+const opcionesPatron = () =>
+  Patron.all().map((p) => ({ value: p.id, label: p.nombre }));
+
 export const resources = {
   colaboradores: {
     basePath: '/colaboradores',
@@ -34,6 +38,7 @@ export const resources = {
       { key: 'area', label: 'Área' },
       { key: 'rol', label: 'Rol' },
       { key: 'jornada_codigo', label: 'Jornada' },
+      { key: 'patron', label: 'Patrón' },
       { key: 'sede', label: 'Sede' },
       { key: 'activo', label: 'Activo', type: 'bool' },
     ],
@@ -43,6 +48,7 @@ export const resources = {
       { name: 'sede_id', label: 'Sede', type: 'select', required: true, options: opcionesSede() },
       { name: 'rol_id', label: 'Rol', type: 'select', required: true, options: opcionesRol() },
       { name: 'jornada_tipo_id', label: 'Jornada', type: 'select', required: true, options: opcionesJornada() },
+      { name: 'patron_id', label: 'Patrón (opcional)', type: 'select', options: opcionesPatron(), help: 'Si se asigna, el motor seguirá este patrón de turnos.' },
       { name: 'activo', label: 'Activo', type: 'checkbox', default: true },
     ],
   },

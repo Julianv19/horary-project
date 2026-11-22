@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS usuario (
   sede_id          INTEGER NOT NULL REFERENCES sede(id)         ON DELETE RESTRICT,
   rol_id           INTEGER NOT NULL REFERENCES rol(id)          ON DELETE RESTRICT,
   jornada_tipo_id  INTEGER NOT NULL REFERENCES jornada_tipo(id) ON DELETE RESTRICT,
+  patron_id        INTEGER REFERENCES patron(id)                ON DELETE SET NULL,
   activo           INTEGER NOT NULL DEFAULT 1
 );
 

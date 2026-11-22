@@ -14,6 +14,7 @@ import Horario from '../models/horario.js';
 import Programacion from '../models/programacion.js';
 import Descanso from '../models/descanso.js';
 import Ausencia from '../models/ausencia.js';
+import Patron from '../models/patron.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS } from '../lib/fechas.js';
 
 // ---- Reglas derivadas de la jornada ---------------------------------
@@ -91,25 +92,39 @@ export function generar(sedeId, semanaInicio) {
   // Ausencias (incapacidad/licencia/vacaciones/permiso) que caen en la semana.
   const ausentes = mapaDiasPorRango(Ausencia.vigentesEnRango(sedeId, fechas[0], fechas[6]), fechas);
 
-  // Precalcular reglas por colaborador (ausencias y descansos tienen prioridad).
+  // Patrones asignados (turnos por día, incluye partidos).
+  const patronDias = new Map();
+  for (const pid of [...new Set(colaboradores.map((c) => c.patron_id).filter(Boolean))]) {
+    patronDias.set(pid, Patron.turnosPorDia(pid));
+  }
+
+  // Precalcular reglas por colaborador. Ausencias y descansos tienen prioridad;
+  // si tiene patrón, el patrón define los días y horas de trabajo.
   const plan = colaboradores.map((c, idx) => {
-    const permitidos = diasPermitidos(c);
     const target = horasObjetivoDia(c);
     const fueraPorAusencia = ausentes.get(c.id) || new Set();
+    const solicitados = new Set(forzados.get(c.id) || []);
+    const patron = c.patron_id ? patronDias.get(c.patron_id) : null;
 
-    // Días candidatos a trabajar: permitidos menos ausencias (estas son absolutas).
+    if (patron) {
+      // Trabaja los días que el patrón define con turnos (salvo ausencia/descanso).
+      const trabaja = [0, 1, 2, 3, 4, 5, 6].filter(
+        (d) => patron[d] && patron[d].length && !fueraPorAusencia.has(d) && !solicitados.has(d)
+      );
+      return { c, target, patron, trabaja: new Set(trabaja) };
+    }
+
+    // Sin patrón: colocación automática con descanso.
+    const permitidos = diasPermitidos(c);
     const base = permitidos.filter((d) => !fueraPorAusencia.has(d));
     const necesita = Math.max(0, base.length - (c.dias_trabajo || 6));
-
-    // Descanso: primero los solicitados y aprobados, luego por menor demanda.
-    const descanso = new Set([...(forzados.get(c.id) || [])].filter((d) => base.includes(d)));
+    const descanso = new Set([...solicitados].filter((d) => base.includes(d)));
     for (const d of ordenPreferencia(base, idx)) {
       if (descanso.size >= necesita) break;
       descanso.add(d);
     }
-
     const trabaja = base.filter((d) => !descanso.has(d));
-    return { c, target, trabaja: new Set(trabaja) };
+    return { c, target, patron: null, trabaja: new Set(trabaja) };
   });
 
   const turnos = [];
@@ -133,25 +148,35 @@ export function generar(sedeId, semanaInicio) {
       }
     }
 
+    const descontar = (rolId, ini, fin) => {
+      if (!rem[rolId]) return;
+      for (let h = ini; h < fin; h++) if (rem[rolId][h] > 0) rem[rolId][h] -= 1;
+    };
+
     for (const p of plan) {
       if (!p.trabaja.has(dia)) continue;
+
+      // Con patrón: colocar sus bloques (soporta turnos partidos).
+      if (p.patron) {
+        for (const b of (p.patron[dia] || [])) {
+          turnos.push({
+            usuario_id: p.c.id, fecha: fechas[dia],
+            hora_inicio: b.hora_inicio, hora_fin: b.hora_fin, orden: b.orden,
+          });
+          descontar(p.c.rol_id, Math.floor(horaANumero(b.hora_inicio)), Math.ceil(horaANumero(b.hora_fin)));
+        }
+        continue;
+      }
+
+      // Sin patrón: bloque contiguo que cubra la mayor demanda.
       const L = Math.min(p.target, operLen);
       if (L <= 0) continue;
-      const remHora = rem[p.c.rol_id] || {};
-      const { start } = mejorVentana(open, close, L, remHora);
+      const { start } = mejorVentana(open, close, L, rem[p.c.rol_id] || {});
       turnos.push({
-        usuario_id: p.c.id,
-        fecha: fechas[dia],
-        hora_inicio: numeroAHora(start),
-        hora_fin: numeroAHora(start + L),
-        orden: 0,
+        usuario_id: p.c.id, fecha: fechas[dia],
+        hora_inicio: numeroAHora(start), hora_fin: numeroAHora(start + L), orden: 0,
       });
-      // Descontar demanda cubierta
-      if (rem[p.c.rol_id]) {
-        for (let h = start; h < start + L; h++) {
-          if (rem[p.c.rol_id][h] > 0) rem[p.c.rol_id][h] -= 1;
-        }
-      }
+      descontar(p.c.rol_id, start, start + L);
     }
   }
 
@@ -201,8 +226,10 @@ export function reporte(sedeId, semanaInicio) {
     if (colab) {
       colab.color = t.rol_color;
       const d = colab.dias[dia];
-      d.trabaja = true; d.inicio = t.hora_inicio; d.fin = t.hora_fin; d.horas += horas;
-      colab.horasSemana += horas;
+      d.trabaja = true; d.inicio = t.hora_inicio; d.fin = t.hora_fin;
+      d.horas = Math.round((d.horas + horas) * 10) / 10;
+      (d.segmentos ??= []).push(`${t.hora_inicio}–${t.hora_fin}`);
+      colab.horasSemana = Math.round((colab.horasSemana + horas) * 10) / 10;
     }
     // asignado por rol_id: necesitamos rol_id; lo tomamos del colaborador
     const colRolId = colaboradores.find((c) => c.id === t.usuario_id)?.rol_id;
