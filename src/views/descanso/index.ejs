@@ -1,0 +1,77 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Solicitudes de descanso</h1></section>
+<p class="muted">El colaborador solicita su día; al aprobarlo, el motor de aforo lo respeta
+(no se le asignan turnos esa fecha).</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<form method="post" action="/descansos" class="form-card inline">
+  <div class="field">
+    <label for="usuario_id">Colaborador <span class="req">*</span></label>
+    <select name="usuario_id" id="usuario_id" required>
+      <option value="">— Seleccionar —</option>
+      <% usuarios.forEach(u => { %>
+        <option value="<%= u.id %>"><%= u.nombre %> · <%= u.sede %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="fecha">Fecha <span class="req">*</span></label>
+    <input type="date" name="fecha" id="fecha" required>
+  </div>
+  <div class="field">
+    <label for="motivo">Motivo</label>
+    <input type="text" name="motivo" id="motivo" placeholder="Opcional">
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn">Registrar solicitud</button>
+  </div>
+</form>
+
+<h2>Solicitudes</h2>
+<% if (solicitudes.length === 0) { %>
+  <p class="muted">No hay solicitudes todavía.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr><th>Colaborador</th><th>Sede</th><th>Fecha</th><th>Día</th><th>Motivo</th><th>Estado</th><th class="acciones">Acciones</th></tr>
+    </thead>
+    <tbody>
+      <% solicitudes.forEach(s => { %>
+        <tr>
+          <td><%= s.usuario %></td>
+          <td><%= s.sede %></td>
+          <td><%= s.fecha %></td>
+          <td><%= s.diaNombre %></td>
+          <td><%= s.motivo || '—' %></td>
+          <td>
+            <% const cls = {PENDIENTE:'no', APROBADA:'yes', RECHAZADA:'no'}[s.estado]; %>
+            <span class="pill <%= cls %>"><%= s.estado %></span>
+          </td>
+          <td class="acciones">
+            <% if (s.estado !== 'APROBADA') { %>
+              <form method="post" action="/descansos/<%= s.id %>/estado">
+                <input type="hidden" name="estado" value="APROBADA">
+                <button class="link" type="submit">Aprobar</button>
+              </form>
+            <% } %>
+            <% if (s.estado !== 'RECHAZADA') { %>
+              <form method="post" action="/descansos/<%= s.id %>/estado">
+                <input type="hidden" name="estado" value="RECHAZADA">
+                <button class="link" type="submit">Rechazar</button>
+              </form>
+            <% } %>
+            <form method="post" action="/descansos/<%= s.id %>/eliminar"
+                  onsubmit="return confirm('¿Eliminar esta solicitud?');">
+              <button class="link danger" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>

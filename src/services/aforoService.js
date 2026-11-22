@@ -12,6 +12,7 @@ import Usuario from '../models/usuario.js';
 import Cobertura from '../models/cobertura.js';
 import Horario from '../models/horario.js';
 import Programacion from '../models/programacion.js';
+import Descanso from '../models/descanso.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS } from '../lib/fechas.js';
 
 // ---- Reglas derivadas de la jornada ---------------------------------
@@ -65,11 +66,35 @@ export function generar(sedeId, semanaInicio) {
   const horarios = Horario.mapaPorSede(sedeId);    // [dia]={apertura,cierre}
   const fechas = fechasSemana(semanaInicio);
 
-  // Precalcular reglas por colaborador
+  // Descansos APROBADOS dentro de la semana → mapa usuario_id -> Set(diaIndex)
+  const forzados = new Map();
+  for (const d of Descanso.aprobadasEnRango(sedeId, fechas[0], fechas[6])) {
+    const dia = fechas.indexOf(d.fecha);
+    if (dia < 0) continue;
+    if (!forzados.has(d.usuario_id)) forzados.set(d.usuario_id, new Set());
+    forzados.get(d.usuario_id).add(dia);
+  }
+
+  // Precalcular reglas por colaborador (respetando descansos solicitados)
   const plan = colaboradores.map((c, idx) => {
     const permitidos = diasPermitidos(c);
     const target = horasObjetivoDia(c);
-    const descanso = diasDescanso(permitidos, c.dias_trabajo || 6, idx);
+    const necesita = Math.max(0, permitidos.length - (c.dias_trabajo || 6));
+
+    // Descanso: primero los días solicitados y aprobados, luego se completa.
+    const solicitados = new Set([...(forzados.get(c.id) || [])].filter((d) => permitidos.includes(d)));
+    const descanso = new Set(solicitados);
+    if (descanso.size < necesita) {
+      for (const d of diasDescanso(permitidos, c.dias_trabajo || 6, idx)) {
+        if (descanso.size >= necesita) break;
+        descanso.add(d);
+      }
+      for (const d of permitidos) {
+        if (descanso.size >= necesita) break;
+        descanso.add(d);
+      }
+    }
+
     const trabaja = permitidos.filter((d) => !descanso.has(d));
     return { c, target, trabaja: new Set(trabaja) };
   });

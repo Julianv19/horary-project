@@ -14,6 +14,7 @@ const menu = [
   ...Object.values(resources).map((r) => ({ basePath: r.basePath, label: r.plural })),
   { basePath: '/cobertura', label: 'Cobertura' },
   { basePath: '/aforo', label: 'Aforo' },
+  { basePath: '/descansos', label: 'Descansos' },
 ];
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

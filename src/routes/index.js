@@ -5,6 +5,7 @@ import { crudFactory, registrarRutas } from '../controllers/crudFactory.js';
 import resources from '../config/resources.js';
 import * as cobertura from '../controllers/coberturaController.js';
 import * as aforo from '../controllers/aforoController.js';
+import * as descanso from '../controllers/descansoController.js';
 
 const router = Router();
 
@@ -24,6 +25,12 @@ router.post('/cobertura', cobertura.guardar);
 router.get('/aforo', aforo.index);
 router.post('/aforo/generar', aforo.generar);
 router.get('/aforo/ver', aforo.ver);
+
+// --- Solicitudes de descanso ---
+router.get('/descansos', descanso.index);
+router.post('/descansos', descanso.crear);
+router.post('/descansos/:id/estado', descanso.cambiarEstado);
+router.post('/descansos/:id/eliminar', descanso.eliminar);
 
 // --- Healthcheck ---
 router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
