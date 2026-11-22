@@ -21,6 +21,7 @@
 </form>
 
 <% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
 
 <% if (!data) { %>
   <div class="alert err">No hay horario generado para <strong><%= sede ? sede.nombre : 'esta sede' %></strong>
@@ -30,6 +31,25 @@
 
   <p class="muted">Sede <strong><%= sede.nombre %></strong> · semana del <strong><%= semana %></strong>
     (<%= fechas[0] %> → <%= fechas[6] %>).</p>
+
+  <div class="publish-bar no-print">
+    Estado:
+    <span class="pill <%= data.programacion.estado === 'PUBLICADA' ? 'yes' : 'no' %>"><%= data.programacion.estado %></span>
+    <form method="post" action="/aforo/publicar" style="display:inline">
+      <input type="hidden" name="sede_id" value="<%= sedeId %>">
+      <input type="hidden" name="semana" value="<%= semana %>">
+      <% if (data.programacion.estado === 'PUBLICADA') { %>
+        <input type="hidden" name="estado" value="BORRADOR">
+        <button class="btn ghost" type="submit">Volver a borrador</button>
+      <% } else { %>
+        <input type="hidden" name="estado" value="PUBLICADA">
+        <button class="btn" type="submit">✅ Publicar</button>
+      <% } %>
+    </form>
+    <% if (data.programacion.estado === 'PUBLICADA') { %>
+      <span class="muted"><small>Publicado: visible para los colaboradores y bloqueado para regenerar.</small></span>
+    <% } %>
+  </div>
 
   <!-- ===== Resumen de horas por colaborador ===== -->
   <h2>Horas por colaborador</h2>

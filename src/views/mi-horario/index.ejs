@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+
+<section class="hero">
+  <h1>Mi horario</h1>
+  <% if (usuario) { %><span class="muted"><%= usuario.nombre %></span><% } %>
+</section>
+
+<form method="get" action="/mi-horario" class="toolbar">
+  <label>Semana: <input type="date" name="semana" value="<%= semana %>" onchange="this.form.submit()"></label>
+</form>
+
+<% if (!usuario) { %>
+  <div class="alert err">Tu cuenta no está vinculada a un colaborador. Pide al administrador que la asocie.</div>
+<% } else if (!publicado) { %>
+  <div class="alert err">El horario de la semana del <strong><%= semana %></strong> aún no ha sido publicado.</div>
+<% } else { %>
+  <p class="muted">Semana del <strong><%= fechas[0] %></strong> al <strong><%= fechas[6] %></strong>.
+    Total: <strong><%= horasSemana %> h</strong>.</p>
+  <div class="dias-grid">
+    <% dias.forEach(d => { %>
+      <div class="dia-card <%= d.turnos.length ? '' : 'descanso' %>">
+        <div class="dia-h"><%= d.nombre %> <small><%= Number(d.fecha.slice(8,10)) %></small></div>
+        <% if (d.turnos.length === 0) { %>
+          <div class="dia-desc">Descanso</div>
+        <% } else { %>
+          <% d.turnos.forEach(t => { %>
+            <div class="dia-turno"><%= t.hora_inicio %> – <%= t.hora_fin %></div>
+          <% }) %>
+          <div class="dia-horas"><%= d.horas %> h</div>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

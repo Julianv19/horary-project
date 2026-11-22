@@ -10,10 +10,20 @@
   <header class="topbar">
     <div class="brand">🍗 <strong>Horary</strong><span>Project</span></div>
     <nav>
-      <% (typeof menu !== 'undefined' ? menu : []).forEach(m => { %>
-        <% const act = m.basePath === '/' ? currentPath === '/' : currentPath.startsWith(m.basePath); %>
-        <a href="<%= m.basePath %>" class="<%= act ? 'active' : '' %>"><%= m.label %></a>
-      <% }) %>
+      <% if (typeof cuenta !== 'undefined' && cuenta && cuenta.es_admin) { %>
+        <% (typeof menu !== 'undefined' ? menu : []).forEach(m => { %>
+          <% const act = m.basePath === '/' ? currentPath === '/' : currentPath.startsWith(m.basePath); %>
+          <a href="<%= m.basePath %>" class="<%= act ? 'active' : '' %>"><%= m.label %></a>
+        <% }) %>
+      <% } else if (typeof cuenta !== 'undefined' && cuenta) { %>
+        <a href="/mi-horario" class="<%= currentPath === '/mi-horario' ? 'active' : '' %>">Mi horario</a>
+      <% } %>
     </nav>
+    <div class="userbox">
+      <% if (typeof cuenta !== 'undefined' && cuenta) { %>
+        <span class="who"><%= cuenta.nombre || cuenta.username %><% if (cuenta.es_admin) { %> <small>(admin)</small><% } %></span>
+        <a class="link" href="/logout">Salir</a>
+      <% } %>
+    </div>
   </header>
   <main class="container">

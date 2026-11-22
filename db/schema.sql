@@ -169,6 +169,19 @@ CREATE TABLE IF NOT EXISTS descanso_solicitud (
   creado_en    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ---------------------------------------------------------------------
+--  CUENTA  (acceso al sistema: admin o colaborador)
+--  usuario_id NULL  → cuenta de administrador no ligada a un colaborador.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cuenta (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  username      TEXT    NOT NULL UNIQUE,
+  password_hash TEXT    NOT NULL,
+  es_admin      INTEGER NOT NULL DEFAULT 0,
+  usuario_id    INTEGER REFERENCES usuario(id) ON DELETE CASCADE,
+  nombre        TEXT
+);
+
 -- Índices útiles
 CREATE INDEX IF NOT EXISTS idx_turno_usuario  ON turno(usuario_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_turno_prog     ON turno(programacion_id);

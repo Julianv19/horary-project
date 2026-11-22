@@ -2,11 +2,13 @@
 //  app.js  —  Arranque de la aplicación Express (MVC)
 // =====================================================================
 import express from 'express';
+import session from 'express-session';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { env, isDev } from './config/env.js';
 import router from './routes/index.js';
 import resources from './config/resources.js';
+import { cargarCuenta } from './middleware/auth.js';
 
 // Menú de navegación derivado de los recursos CRUD
 const menu = [
@@ -32,6 +34,15 @@ app.set('views', resolve(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(resolve(__dirname, 'public')));
+
+// Sesiones + carga de la cuenta autenticada
+app.use(session({
+  secret: env.sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, maxAge: 1000 * 60 * 60 * 8 },
+}));
+app.use(cargarCuenta);
 
 // Variables disponibles en todas las vistas
 app.use((req, res, next) => {

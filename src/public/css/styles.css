@@ -37,7 +37,29 @@ body {
 }
 .topbar nav a.active { background: var(--brand); color: #fff; }
 
+.topbar .userbox { display: flex; align-items: center; gap: .6rem; margin-left: auto; padding-left: 1rem; }
+.topbar .userbox .who { font-size: .85rem; color: var(--muted); }
+
 .container { max-width: 1000px; margin: 1.5rem auto; padding: 0 1rem; }
+
+/* --- Login --- */
+.login-wrap { display: flex; justify-content: center; padding: 2rem 0; }
+.login-card { width: 100%; max-width: 360px; }
+.login-card h1 { margin-top: 0; }
+
+/* --- Barra de publicación --- */
+.publish-bar { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .8rem; margin: .75rem 0; }
+.publish-bar form { margin: 0; }
+
+/* --- Mi horario (tarjetas por día) --- */
+.dias-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .75rem; }
+.dia-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: .6rem .7rem; box-shadow: var(--shadow); }
+.dia-card.descanso { background: #f7f7f9; }
+.dia-h { font-weight: 700; border-bottom: 1px solid var(--line); padding-bottom: .25rem; margin-bottom: .4rem; }
+.dia-h small { color: var(--muted); font-weight: 400; }
+.dia-turno { font-size: .9rem; }
+.dia-desc { color: var(--muted); font-style: italic; }
+.dia-horas { margin-top: .3rem; font-size: .8rem; color: var(--brand); font-weight: 700; }
 
 .hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .hero h1 { margin: .2rem 0; }

@@ -33,12 +33,23 @@ Ver [`docs/CARACTERIZACION.md`](docs/CARACTERIZACION.md).
 ## Puesta en marcha
 
 ```bash
-npm install                 # instala express, ejs, dotenv
-cp .env.example .env         # crea tu configuración local
+npm install                 # instala express, express-session, ejs, dotenv
+cp .env.example .env         # crea tu configuración local (ajusta SESSION_SECRET)
 npm run db:init              # crea la base de datos SQLite y carga datos de ejemplo
-node db/seed_cobertura.js    # (opcional) carga cobertura de ejemplo para probar el aforo
+node db/migrate_patrones.js  # patrones de ejemplo (y columna patron_id)
+node db/migrate_auth.js      # crea accesos: admin + una cuenta por colaborador
+node db/seed_cobertura.js    # (opcional) cobertura de ejemplo para probar el aforo
 npm run dev                  # arranca en http://localhost:3000 (recarga en caliente)
 ```
+
+## Acceso
+
+- **Administrador**: usuario `admin`, contraseña `admin123` (ve y gestiona todo).
+- **Colaborador**: usuario `<nombre>.<id>` (p. ej. `robinson.1`), contraseña `clave123`;
+  solo ve **su propio horario** cuando la semana está **publicada**.
+
+> Cambia estas contraseñas de ejemplo antes de cualquier uso real, y pon un
+> `SESSION_SECRET` aleatorio en `.env`.
 
 ## Motor de aforo (por cobertura)
 
@@ -61,6 +72,12 @@ patrón, el motor sigue ese patrón en vez de la colocación automática.
 
 > Si actualizas desde una base anterior, ejecuta una vez `node db/migrate_patrones.js`
 > para añadir la columna `usuario.patron_id` y cargar patrones de ejemplo.
+
+## Publicar un horario
+
+En el horario (`/aforo/ver`) el administrador puede **Publicar** la semana: queda
+visible para los colaboradores en **Mi horario** y se **bloquea** para regenerar
+(hay que volverla a borrador para rehacerla).
 
 ## Estructura (MVC)
 

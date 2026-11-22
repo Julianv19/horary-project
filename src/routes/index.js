@@ -9,8 +9,23 @@ import * as descanso from '../controllers/descansoController.js';
 import * as ausencia from '../controllers/ausenciaController.js';
 import * as patron from '../controllers/patronController.js';
 import * as dominical from '../controllers/dominicalController.js';
+import * as auth from '../controllers/authController.js';
+import * as miHorario from '../controllers/miHorarioController.js';
+import { requireLogin, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
+
+// ===================== Público =====================
+router.get('/login', auth.loginForm);
+router.post('/login', auth.login);
+router.get('/logout', auth.logout);
+router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
+
+// ===================== Colaborador (requiere sesión) =====================
+router.get('/mi-horario', requireLogin, miHorario.index);
+
+// ===================== Administrador =====================
+router.use(requireAdmin); // todo lo de abajo exige cuenta admin
 
 // --- Tablero ---
 router.get('/', dashboard.index);
@@ -28,6 +43,7 @@ router.post('/cobertura', cobertura.guardar);
 router.get('/aforo', aforo.index);
 router.post('/aforo/generar', aforo.generar);
 router.get('/aforo/ver', aforo.ver);
+router.post('/aforo/publicar', aforo.publicar);
 router.get('/aforo/export.csv', aforo.exportCsv);
 
 // --- Solicitudes de descanso ---
@@ -54,8 +70,5 @@ router.post('/patrones/:id/turnos/:tid/eliminar', patron.removeTurno);
 
 // --- Descansos dominicales ---
 router.get('/dominicales', dominical.index);
-
-// --- Healthcheck ---
-router.get('/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 
 export default router;

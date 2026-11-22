@@ -25,6 +25,16 @@ export const Programacion = {
     ).all(sedeId);
   },
 
+  setEstado(id, estado) {
+    return db.prepare('UPDATE programacion SET estado = ? WHERE id = ?').run(estado, id);
+  },
+
+  turnosDeUsuario(programacionId, usuarioId) {
+    return db.prepare(
+      'SELECT * FROM turno WHERE programacion_id = ? AND usuario_id = ? ORDER BY fecha, orden'
+    ).all(programacionId, usuarioId);
+  },
+
   limpiarTurnos(programacionId) {
     return db.prepare('DELETE FROM turno WHERE programacion_id = ?').run(programacionId);
   },

@@ -25,6 +25,11 @@ export function index(req, res) {
 export function generar(req, res) {
   const sedeId = Number(req.body.sede_id);
   const semana = lunesDe(req.body.semana);
+  // No regenerar sobre una semana publicada (bloqueada).
+  const existente = Programacion.find(sedeId, semana);
+  if (existente && existente.estado === 'PUBLICADA') {
+    return res.redirect(`/aforo/ver?sede=${sedeId}&semana=${semana}&err=${encodeURIComponent('La semana está publicada. Despublícala antes de regenerar.')}`);
+  }
   try {
     const { totalTurnos } = aforo.generar(sedeId, semana, { rotarDomingos: !!req.body.rotar_domingos });
     res.redirect(`/aforo/ver?sede=${sedeId}&semana=${semana}&ok=${encodeURIComponent(`Aforo generado: ${totalTurnos} turnos.`)}`);
@@ -47,6 +52,17 @@ export function ver(req, res) {
     data,
     flash: { ok: req.query.ok || null, err: req.query.err || null },
   });
+}
+
+// Publica o vuelve a borrador una programación.
+export function publicar(req, res) {
+  const sedeId = Number(req.body.sede_id);
+  const semana = lunesDe(req.body.semana);
+  const estado = req.body.estado === 'PUBLICADA' ? 'PUBLICADA' : 'BORRADOR';
+  const prog = Programacion.find(sedeId, semana);
+  if (prog) Programacion.setEstado(prog.id, estado);
+  const msg = estado === 'PUBLICADA' ? 'Horario publicado.' : 'Horario vuelto a borrador.';
+  res.redirect(`/aforo/ver?sede=${sedeId}&semana=${semana}&ok=${encodeURIComponent(msg)}`);
 }
 
 // Exporta el horario de la semana a CSV (compatible con Excel).
@@ -93,4 +109,4 @@ export function exportCsv(req, res) {
   res.send(documento(rows));
 }
 
-export default { index, generar, ver, exportCsv };
+export default { index, generar, ver, publicar, exportCsv };
