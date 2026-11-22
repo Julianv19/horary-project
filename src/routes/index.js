@@ -27,6 +27,7 @@ router.post('/cobertura', cobertura.guardar);
 router.get('/aforo', aforo.index);
 router.post('/aforo/generar', aforo.generar);
 router.get('/aforo/ver', aforo.ver);
+router.get('/aforo/export.csv', aforo.exportCsv);
 
 // --- Solicitudes de descanso ---
 router.get('/descansos', descanso.index);

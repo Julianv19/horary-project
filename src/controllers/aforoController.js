@@ -3,6 +3,7 @@ import Sede from '../models/sede.js';
 import Programacion from '../models/programacion.js';
 import * as aforo from '../services/aforoService.js';
 import { lunesDe, toYMD, fechasSemana } from '../lib/fechas.js';
+import { documento } from '../lib/csv.js';
 
 function semanaPorDefecto() {
   return lunesDe(toYMD(new Date()));
@@ -48,4 +49,48 @@ export function ver(req, res) {
   });
 }
 
-export default { index, generar, ver };
+// Exporta el horario de la semana a CSV (compatible con Excel).
+export function exportCsv(req, res) {
+  const sedeId = Number(req.query.sede);
+  const semana = lunesDe(req.query.semana);
+  const sede = Sede.find(sedeId);
+  const data = aforo.reporte(sedeId, semana);
+  if (!data) {
+    return res.redirect(`/aforo?sede=${sedeId}&semana=${semana}&err=${encodeURIComponent('No hay horario generado para exportar.')}`);
+  }
+
+  const diasCortos = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const estadoTxt = { ok: 'OK', bajo: 'Bajo', alto: 'Alto' };
+  const rows = [];
+
+  rows.push(['Horario semanal', sede ? sede.nombre : '']);
+  rows.push(['Semana (lunes)', semana]);
+  rows.push([]);
+
+  rows.push(['HORAS POR COLABORADOR']);
+  rows.push(['Colaborador', 'Rol', 'Jornada', ...diasCortos, 'Semana', 'Estado']);
+  for (const c of data.colaboradores) {
+    const celdas = c.dias.map((d) => (d.trabaja ? d.horas : (d.ausencia ? d.ausencia.slice(0, 3) : 'D')));
+    rows.push([c.nombre, c.rol, c.jornada_codigo, ...celdas, c.horasSemana, estadoTxt[c.estadoJornada] || '']);
+  }
+  rows.push([]);
+
+  rows.push(['COBERTURA POR HORA (asignado/requerido)']);
+  for (const dd of data.porDia) {
+    if (!dd.abierto) continue;
+    rows.push([`${dd.nombre} ${dd.fecha}`]);
+    rows.push(['Área', ...dd.horas]);
+    for (const fa of dd.filasArea) {
+      rows.push([fa.area, ...fa.asignado.map((a, i) => `${a}/${fa.requerido[i]}`)]);
+    }
+    rows.push(['TOTAL', ...dd.totalAsignado.map((a, i) => `${a}/${dd.totalRequerido[i]}`)]);
+    rows.push([]);
+  }
+
+  const nombreArchivo = `horario_${(sede ? sede.nombre : 'sede').replace(/\s+/g, '_')}_${semana}.csv`;
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+  res.send(documento(rows));
+}
+
+export default { index, generar, ver, exportCsv };

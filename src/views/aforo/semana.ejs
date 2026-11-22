@@ -14,6 +14,10 @@
   </label>
   <label>Semana: <input type="date" name="semana" value="<%= semana %>" onchange="this.form.submit()"></label>
   <a class="btn ghost" href="/aforo?sede=<%= sedeId %>&semana=<%= semana %>">⚙ Volver a generar</a>
+  <% if (data) { %>
+    <a class="btn ghost no-print" href="/aforo/export.csv?sede=<%= sedeId %>&semana=<%= semana %>">⬇ Exportar CSV</a>
+    <button type="button" class="btn ghost no-print" onclick="window.print()">🖨 Imprimir / PDF</button>
+  <% } %>
 </form>
 
 <% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>

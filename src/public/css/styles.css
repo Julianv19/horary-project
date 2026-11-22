@@ -187,3 +187,17 @@ table.grid tr.total td { background: #f1f1f3; font-weight: 700; }
 @media (max-width: 640px) {
   .rol-row { grid-template-columns: 1fr; }
 }
+
+/* --- Impresión / PDF --- */
+@media print {
+  .topbar, .footer, .toolbar, .no-print, form.toolbar { display: none !important; }
+  body { background: #fff; }
+  .container { margin: 0; max-width: none; }
+  .scroll-x { overflow: visible; border: none; }
+  table.grid { width: 100%; }
+  table.grid th, table.grid td { font-size: .7rem; padding: .15rem .25rem; }
+  h2, h3 { break-after: avoid; }
+  tr, .area-block { break-inside: avoid; }
+  td.cell.gap, td.cell.over, td.cell.okc,
+  .pill, .aus { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
