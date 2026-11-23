@@ -41,6 +41,7 @@
             <a class="link" href="<%= basePath %>/<%= item.id %>/editar">Editar</a>
             <form method="post" action="<%= basePath %>/<%= item.id %>/eliminar"
                   onsubmit="return confirm('¿Eliminar este registro? Esta acción no se puede deshacer.');">
+              <%- include('../partials/csrf') %>
               <button type="submit" class="link danger">Eliminar</button>
             </form>
           </td>

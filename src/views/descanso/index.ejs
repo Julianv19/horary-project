@@ -8,6 +8,7 @@
 <% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
 
 <form method="post" action="/descansos" class="form-card inline">
+  <%- include('../partials/csrf') %>
   <div class="field">
     <label for="usuario_id">Colaborador <span class="req">*</span></label>
     <select name="usuario_id" id="usuario_id" required>
@@ -53,18 +54,21 @@
           <td class="acciones">
             <% if (s.estado !== 'APROBADA') { %>
               <form method="post" action="/descansos/<%= s.id %>/estado">
+                <%- include('../partials/csrf') %>
                 <input type="hidden" name="estado" value="APROBADA">
                 <button class="link" type="submit">Aprobar</button>
               </form>
             <% } %>
             <% if (s.estado !== 'RECHAZADA') { %>
               <form method="post" action="/descansos/<%= s.id %>/estado">
+                <%- include('../partials/csrf') %>
                 <input type="hidden" name="estado" value="RECHAZADA">
                 <button class="link" type="submit">Rechazar</button>
               </form>
             <% } %>
             <form method="post" action="/descansos/<%= s.id %>/eliminar"
                   onsubmit="return confirm('¿Eliminar esta solicitud?');">
+              <%- include('../partials/csrf') %>
               <button class="link danger" type="submit">Eliminar</button>
             </form>
           </td>

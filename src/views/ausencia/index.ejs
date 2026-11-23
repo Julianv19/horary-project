@@ -9,6 +9,7 @@ respeta al generar, y puedes ajustar una semana ya generada con “Modificar pro
 
 <h2>Registrar ausencia</h2>
 <form method="post" action="/incapacidades" class="form-card inline">
+  <%- include('../partials/csrf') %>
   <div class="field">
     <label for="usuario_id">Colaborador <span class="req">*</span></label>
     <select name="usuario_id" id="usuario_id" required>
@@ -41,6 +42,7 @@ respeta al generar, y puedes ajustar una semana ya generada con “Modificar pro
 
 <h2>Modificar programación ya generada</h2>
 <form method="post" action="/incapacidades/aplicar" class="form-card inline">
+  <%- include('../partials/csrf') %>
   <div class="field">
     <label for="sede_id">Sede</label>
     <select name="sede_id" id="sede_id">
@@ -83,6 +85,7 @@ horario para ver los huecos. (También puedes regenerar toda la semana desde <a 
           <td class="acciones">
             <form method="post" action="/incapacidades/<%= a.id %>/eliminar"
                   onsubmit="return confirm('¿Eliminar esta ausencia?');">
+              <%- include('../partials/csrf') %>
               <button class="link danger" type="submit">Eliminar</button>
             </form>
           </td>

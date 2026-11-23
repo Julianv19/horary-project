@@ -36,6 +36,7 @@
     Estado:
     <span class="pill <%= data.programacion.estado === 'PUBLICADA' ? 'yes' : 'no' %>"><%= data.programacion.estado %></span>
     <form method="post" action="/aforo/publicar" style="display:inline">
+      <%- include('../partials/csrf') %>
       <input type="hidden" name="sede_id" value="<%= sedeId %>">
       <input type="hidden" name="semana" value="<%= semana %>">
       <% if (data.programacion.estado === 'PUBLICADA') { %>

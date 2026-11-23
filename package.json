@@ -8,7 +8,8 @@
     "start": "node src/app.js",
     "dev": "node --watch src/app.js",
     "db:init": "node db/init.js",
-    "db:reset": "node db/init.js --reset"
+    "db:reset": "node db/init.js --reset",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=22.5.0"

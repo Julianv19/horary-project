@@ -22,6 +22,7 @@
 <% } %>
 
 <form method="post" action="<%= action %>" class="form-card">
+  <%- include('../partials/csrf') %>
   <% fields.forEach(f => { %>
     <div class="field">
       <label for="<%= f.name %>">

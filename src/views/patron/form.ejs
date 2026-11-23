@@ -7,6 +7,7 @@
 <% if (error) { %><div class="alert err"><strong>No se pudo guardar:</strong> <%= error %></div><% } %>
 
 <form method="post" action="<%= esNuevo ? '/patrones' : '/patrones/' + patron.id %>" class="form-card">
+  <%- include('../partials/csrf') %>
   <div class="field">
     <label for="nombre">Nombre <span class="req">*</span></label>
     <input type="text" name="nombre" id="nombre" value="<%= patron.nombre || '' %>" required>
@@ -35,6 +36,7 @@
   <p class="muted">Agrega uno o varios bloques por día. Dos o más bloques en un día = turno partido.</p>
 
   <form method="post" action="/patrones/<%= patron.id %>/turnos" class="form-card inline">
+    <%- include('../partials/csrf') %>
     <div class="field">
       <label for="dia_semana">Día</label>
       <select name="dia_semana" id="dia_semana">
@@ -65,6 +67,7 @@
               <span class="turno-chip">
                 <%= b.hora_inicio %>–<%= b.hora_fin %>
                 <form method="post" action="/patrones/<%= patron.id %>/turnos/<%= b.id %>/eliminar" style="display:inline">
+                  <%- include('../partials/csrf') %>
                   <button class="link danger x" type="submit" title="Quitar">✕</button>
                 </form>
               </span>

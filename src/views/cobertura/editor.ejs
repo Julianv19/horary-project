@@ -24,6 +24,7 @@
 </form>
 
 <form method="post" action="/cobertura">
+  <%- include('../partials/csrf') %>
   <input type="hidden" name="sede_id" value="<%= sedeId %>">
   <input type="hidden" name="dia" value="<%= dia %>">
 

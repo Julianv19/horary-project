@@ -79,6 +79,17 @@ En el horario (`/aforo/ver`) el administrador puede **Publicar** la semana: qued
 visible para los colaboradores en **Mi horario** y se **bloquea** para regenerar
 (hay que volverla a borrador para rehacerla).
 
+## Seguridad y pruebas
+
+- **CSRF**: token de sincronización en todos los formularios que modifican datos.
+- **Cabeceras**: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`.
+- **Cookie de sesión**: `httpOnly`, `sameSite=lax` y `secure` en producción.
+- **Tests** (runner nativo de Node, sin dependencias):
+
+```bash
+npm test
+```
+
 ## Estructura (MVC)
 
 ```

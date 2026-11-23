@@ -9,6 +9,7 @@ import { env, isDev } from './config/env.js';
 import router from './routes/index.js';
 import resources from './config/resources.js';
 import { cargarCuenta } from './middleware/auth.js';
+import { securityHeaders, csrf } from './middleware/security.js';
 
 // Menú de navegación derivado de los recursos CRUD
 const menu = [
@@ -31,6 +32,7 @@ app.set('view engine', 'ejs');
 app.set('views', resolve(__dirname, 'views'));
 
 // --- Middlewares ---
+app.use(securityHeaders);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(resolve(__dirname, 'public')));
@@ -40,17 +42,20 @@ app.use(session({
   secret: env.sessionSecret,
   resave: false,
   saveUninitialized: false,
-  cookie: { httpOnly: true, maxAge: 1000 * 60 * 60 * 8 },
+  cookie: { httpOnly: true, sameSite: 'lax', secure: !isDev, maxAge: 1000 * 60 * 60 * 8 },
 }));
 app.use(cargarCuenta);
 
-// Variables disponibles en todas las vistas
+// Variables disponibles en todas las vistas (antes del CSRF, para que su
+// página de error también disponga de ellas).
 app.use((req, res, next) => {
   res.locals.appName = 'Horary Project';
   res.locals.currentPath = req.path;
   res.locals.menu = menu;
   next();
 });
+
+app.use(csrf);
 
 // --- Rutas ---
 app.use('/', router);

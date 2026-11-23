@@ -2,6 +2,7 @@
 
 <div class="login-wrap">
   <form method="post" action="/login" class="form-card login-card">
+    <%- include('../partials/csrf') %>
     <h1>Entrar</h1>
     <% if (error) { %><div class="alert err"><%= error %></div><% } %>
     <div class="field">

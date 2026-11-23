@@ -8,6 +8,7 @@ respetando jornada, descanso y horario de la sede.</p>
 <% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
 
 <form method="post" action="/aforo/generar" class="form-card">
+  <%- include('../partials/csrf') %>
   <div class="field">
     <label for="sede_id">Sede</label>
     <select name="sede_id" id="sede_id">

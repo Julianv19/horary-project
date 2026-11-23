@@ -26,6 +26,7 @@ colaborador desde su ficha y el motor de aforo las sigue al generar.</p>
             <a class="link" href="/patrones/<%= p.id %>/editar">Editar</a>
             <form method="post" action="/patrones/<%= p.id %>/eliminar"
                   onsubmit="return confirm('¿Eliminar el patrón? Los colaboradores quedarán sin patrón.');">
+              <%- include('../partials/csrf') %>
               <button class="link danger" type="submit">Eliminar</button>
             </form>
           </td>
