@@ -205,6 +205,17 @@ td.cell.okc  { background: #e7f6ec; color: #1e7a3d; }   /* cubierto */
 .pill.cell.okc  { background: #e7f6ec; color: #1e7a3d; }
 table.grid tr.total td { background: #f1f1f3; font-weight: 700; }
 
+/* Cuadrícula detallada por colaborador */
+table.detalle td, table.detalle th { min-width: 26px; }
+table.detalle tr.area-head td { background: #eef2f7; font-weight: 700; text-transform: uppercase; font-size: .72rem; }
+table.detalle tr.area-head .sticky { background: #eef2f7; }
+table.detalle td.on { padding: 0; }
+table.detalle tr.subtotal td { background: #fafafa; font-weight: 600; font-size: .78rem; }
+table.detalle tr.subtotal .sticky { background: #fafafa; }
+table.detalle tr.total .sticky { background: #f1f1f3; }
+table.detalle .sticky { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+p.descansan { margin-top: .35rem; }
+
 .chip { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; margin: 0 .15rem; border: 1px solid var(--line); }
 .chip.gap { background: #fdecec; } .chip.over { background: #fff6e6; } .chip.okc { background: #e7f6ec; }
 

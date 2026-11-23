@@ -94,8 +94,14 @@
   <p class="muted"><small>“D” = descanso. Estado compara las horas de la semana con el rango de la jornada
     (TC debe cumplir 7 h exactas/día).</small></p>
 
-  <!-- ===== Cobertura por día ===== -->
-  <h2>Cobertura por hora (asignado / requerido)</h2>
+  <!-- ===== Detalle por colaborador y hora ===== -->
+  <h2>Horario por colaborador y franja</h2>
+  <% function claseCob(asg, req) {
+       if (req === 0 && asg === 0) return '';
+       if (asg < req) return 'gap';
+       if (asg > req) return 'over';
+       return 'okc';
+     } %>
   <% data.porDia.forEach(dd => { %>
     <h3 class="area-title"><%= dd.nombre %> <%= dd.fecha %>
       <% if (dd.abierto) { %><small class="muted">· <%= dd.apertura %>–<%= dd.cierre %></small>
@@ -103,42 +109,66 @@
     </h3>
     <% if (dd.abierto) { %>
       <div class="scroll-x">
-        <table class="grid cov">
+        <table class="grid detalle">
           <thead>
-            <tr><th class="sticky">Área</th><% dd.horas.forEach(h => { %><th><%= h %></th><% }) %></tr>
+            <tr>
+              <th class="sticky">Colaborador</th>
+              <th>Jorn.</th>
+              <% dd.horas.forEach(h => { %><th><%= h %></th><% }) %>
+              <th>T.H</th>
+            </tr>
           </thead>
           <tbody>
-            <% dd.filasArea.forEach(fa => { %>
-              <tr>
-                <td class="sticky"><%= fa.area %></td>
-                <% fa.requerido.forEach((req, i) => {
-                     const asg = fa.asignado[i];
-                     let cls = '';
-                     if (req === 0 && asg === 0) cls = '';
-                     else if (asg < req) cls = 'gap';
-                     else if (asg > req) cls = 'over';
-                     else cls = 'okc';
-                %>
-                  <td class="cell <%= cls %>"><%= asg %>/<%= req %></td>
+            <% dd.grupos.forEach(g => { %>
+              <tr class="area-head">
+                <td class="sticky" colspan="2"><%= g.area %></td>
+                <% g.personasPorHora.forEach((a, i) => { %><td class="num"><%= a || '' %></td><% }) %>
+                <td></td>
+              </tr>
+              <% g.filas.forEach(f => { %>
+                <tr>
+                  <td class="sticky" title="<%= f.rol %>"><%= f.nombre %></td>
+                  <td><%= f.jornada %></td>
+                  <% f.marcas.forEach((m, i) => { %>
+                    <% if (m) { %>
+                      <td class="on" style="background: <%= f.color || '#9bb38a' %>" title="<%= (f.segmentos||[]).join(' / ') %>"></td>
+                    <% } else { %>
+                      <td></td>
+                    <% } %>
+                  <% }) %>
+                  <td class="num"><strong><%= f.horas %></strong></td>
+                </tr>
+              <% }) %>
+              <tr class="subtotal">
+                <td class="sticky" colspan="2">Total <%= g.area %> (asignado/requerido)</td>
+                <% g.personasPorHora.forEach((a, i) => { const req = g.requerido[i]; %>
+                  <td class="cell <%= claseCob(a, req) %>"><%= a %>/<%= req %></td>
                 <% }) %>
+                <td></td>
               </tr>
             <% }) %>
             <tr class="total">
-              <td class="sticky">TOTAL</td>
+              <td class="sticky" colspan="2">No. personas por hora</td>
               <% dd.totalAsignado.forEach((a, i) => { %>
-                <td><%= a %>/<%= dd.totalRequerido[i] %></td>
+                <td class="cell <%= claseCob(a, dd.totalRequerido[i]) %>"><%= a %>/<%= dd.totalRequerido[i] %></td>
               <% }) %>
+              <td></td>
             </tr>
           </tbody>
         </table>
       </div>
+      <% if (dd.descansan && dd.descansan.length) { %>
+        <p class="muted descansan"><small><strong>Descansan / ausentes:</strong>
+          <% dd.descansan.forEach((d, i) => { %><%= d.nombre %> (<%= d.nota %>)<%= i < dd.descansan.length - 1 ? ' · ' : '' %><% }) %>
+        </small></p>
+      <% } %>
     <% } %>
   <% }) %>
 
   <p class="muted"><small>
-    <span class="chip gap"></span> hueco (falta personal) ·
-    <span class="chip over"></span> sobrecupo ·
-    <span class="chip okc"></span> cubierto exacto
+    Cada celda coloreada = una hora cubierta por ese colaborador (pasa el cursor para ver el turno).
+    En los totales: <span class="chip gap"></span> hueco · <span class="chip over"></span> sobrecupo ·
+    <span class="chip okc"></span> cubierto.
   </small></p>
 <% } %>
 

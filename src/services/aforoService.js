@@ -223,6 +223,8 @@ export function reporte(sedeId, semanaInicio) {
 
   // Índice: asignado[dia][rol_id][hora] = nº personas
   const asignado = {};
+  // Detalle: detalleDia[dia] = Map(usuario_id -> {horas:Set, seg:[], dur})
+  const detalleDia = {};
   // Por colaborador: dias[7] = {trabaja, inicio, fin, horas}
   const porColab = new Map();
   for (const c of colaboradores) {
@@ -257,6 +259,23 @@ export function reporte(sedeId, semanaInicio) {
     if (colRolId != null) {
       (asignado[dia][colRolId] ??= {});
       for (let h = ini; h < fin; h++) asignado[dia][colRolId][h] = (asignado[dia][colRolId][h] || 0) + 1;
+    }
+
+    // Detalle por colaborador: horas marcadas y segmentos del día.
+    (detalleDia[dia] ??= new Map());
+    if (!detalleDia[dia].has(t.usuario_id)) detalleDia[dia].set(t.usuario_id, { horas: new Set(), seg: [], dur: 0 });
+    const det = detalleDia[dia].get(t.usuario_id);
+    for (let h = ini; h < fin; h++) det.horas.add(h);
+    det.seg.push(`${t.hora_inicio}–${t.hora_fin}`);
+    det.dur = Math.round((det.dur + horas) * 10) / 10;
+  }
+
+  // Marcar días de ausencia (incapacidad/licencia/...) en el resumen por colaborador.
+  for (const a of Ausencia.vigentesEnRango(sedeId, fechas[0], fechas[6])) {
+    const colab = porColab.get(a.usuario_id);
+    if (!colab) continue;
+    for (let i = 0; i < 7; i++) {
+      if (fechas[i] >= a.fecha_inicio && fechas[i] <= a.fecha_fin) colab.dias[i].ausencia = a.tipo;
     }
   }
 
@@ -312,20 +331,39 @@ export function reporte(sedeId, semanaInicio) {
     const totalAsignado = horas.map((h, i) => filasArea.reduce((s, f) => s + f.asignado[i], 0));
     const totalRequerido = horas.map((h, i) => filasArea.reduce((s, f) => s + f.requerido[i], 0));
 
+    // Detalle por colaborador que trabaja ese día, agrupado por área.
+    const trabajadores = detalleDia[dia] || new Map();
+    const gruposMap = new Map(); // area -> {area, orden, filas:[]}
+    for (const [uid, info] of trabajadores) {
+      const c = porColab.get(uid);
+      if (!c) continue;
+      if (!gruposMap.has(c.area)) gruposMap.set(c.area, { area: c.area, orden: c.area_orden, filas: [] });
+      gruposMap.get(c.area).filas.push({
+        nombre: c.nombre, rol: c.rol, color: c.color, jornada: c.jornada_codigo,
+        marcas: horas.map((h) => (info.horas.has(h) ? 1 : '')),
+        segmentos: info.seg, horas: info.dur,
+      });
+    }
+    const reqPorArea = Object.fromEntries(filasArea.map((f) => [f.area, f.requerido]));
+    const grupos = [...gruposMap.values()]
+      .sort((a, b) => a.orden - b.orden)
+      .map((g) => ({
+        ...g,
+        filas: g.filas.sort((a, b) => a.rol.localeCompare(b.rol) || a.nombre.localeCompare(b.nombre)),
+        personasPorHora: horas.map((h, i) => g.filas.reduce((s, f) => s + (f.marcas[i] ? 1 : 0), 0)),
+        requerido: reqPorArea[g.area] || horas.map(() => 0),
+      }));
+
+    // Quién descansa o está ausente ese día (de los que podrían trabajar).
+    const descansan = colaboradores
+      .filter((c) => !trabajadores.has(c.id))
+      .map((c) => ({ nombre: c.nombre, nota: porColab.get(c.id)?.dias[dia]?.ausencia || 'Descanso' }));
+
     porDia.push({
       dia, nombre: DIAS[dia], fecha: fechas[dia], abierto,
       apertura: abierto ? hor.apertura : null, cierre: abierto ? hor.cierre : null,
-      horas, filasArea, totalAsignado, totalRequerido,
+      horas, filasArea, totalAsignado, totalRequerido, grupos, descansan,
     });
-  }
-
-  // Marcar días de ausencia (incapacidad/licencia/...) en el resumen por colaborador.
-  for (const a of Ausencia.vigentesEnRango(sedeId, fechas[0], fechas[6])) {
-    const colab = porColab.get(a.usuario_id);
-    if (!colab) continue;
-    for (let i = 0; i < 7; i++) {
-      if (fechas[i] >= a.fecha_inicio && fechas[i] <= a.fecha_fin) colab.dias[i].ausencia = a.tipo;
-    }
   }
 
   // Compliance de jornada por colaborador
