@@ -203,6 +203,22 @@ CREATE TABLE IF NOT EXISTS sugerencia (
 );
 
 -- ---------------------------------------------------------------------
+--  DEMANDA  (demanda operativa: refuerzo por franja y rol)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS demanda (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  sede_id     INTEGER NOT NULL REFERENCES sede(id) ON DELETE CASCADE,
+  dia_semana  INTEGER NOT NULL CHECK (dia_semana BETWEEN 0 AND 6),
+  hora_inicio TEXT NOT NULL,
+  hora_fin    TEXT NOT NULL,
+  rol_id      INTEGER REFERENCES rol(id) ON DELETE CASCADE,
+  personas    INTEGER NOT NULL DEFAULT 1,
+  prioridad   TEXT NOT NULL DEFAULT 'MEDIA',
+  obs         TEXT,
+  activa      INTEGER NOT NULL DEFAULT 1
+);
+
+-- ---------------------------------------------------------------------
 --  RESTRICCION  (restricciones múltiples por colaborador)
 --  tipo: FIJO_MANANA|FIJO_TARDE_NOCHE|MEDICA|ACADEMICA|VACACIONES|
 --        DIAS_NO_DISPONIBLE|FRANJA_NO_DISPONIBLE

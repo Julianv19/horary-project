@@ -11,7 +11,13 @@ import Rol from '../models/rol.js';
 import Jornada from '../models/jornada.js';
 import Usuario from '../models/usuario.js';
 import Patron from '../models/patron.js';
+import Demanda, { PRIORIDADES } from '../models/demanda.js';
 import { RESTRICCION_TIPOS, RESTRICCION_TURNOS } from '../lib/restricciones.js';
+import { DIAS } from '../lib/fechas.js';
+
+const opcionesDia = () => DIAS.map((d, i) => ({ value: i, label: d }));
+const opcionesPrioridad = () => PRIORIDADES.map((p) => ({ value: p, label: p }));
+const opcionesRolRef = () => [{ value: '', label: '(cualquier rol)' }, ...Rol.all().map((r) => ({ value: r.id, label: `${r.area} · ${r.nombre}` }))];
 
 const opcionesRestriccion = () => RESTRICCION_TIPOS.map((t) => ({ value: t.val, label: t.label }));
 const opcionesTurnoRestriccion = () => RESTRICCION_TURNOS.map((t) => ({ value: t.val, label: t.label }));
@@ -61,6 +67,31 @@ export const resources = {
       { name: 'restriccion_obs', label: 'Observaciones de la restricción', type: 'textarea' },
       { name: 'es_nuevo', label: 'En inducción (colaborador nuevo)', type: 'checkbox' },
       { name: 'activo', label: 'Activo', type: 'checkbox', default: true },
+    ],
+  },
+
+  demanda: {
+    basePath: '/demanda',
+    singular: 'demanda operativa',
+    plural: 'Demanda operativa',
+    model: Demanda,
+    columns: [
+      { key: 'dia', label: 'Día' },
+      { key: 'franja', label: 'Franja' },
+      { key: 'rol', label: 'Rol' },
+      { key: 'personas', label: 'Personas' },
+      { key: 'prioridad', label: 'Prioridad' },
+      { key: 'sede', label: 'Sede' },
+    ],
+    fields: () => [
+      { name: 'sede_id', label: 'Sede', type: 'select', required: true, options: opcionesSede() },
+      { name: 'dia_semana', label: 'Día de la semana', type: 'select', required: true, options: opcionesDia() },
+      { name: 'hora_inicio', label: 'Desde', type: 'time', required: true },
+      { name: 'hora_fin', label: 'Hasta', type: 'time', required: true },
+      { name: 'rol_id', label: 'Rol a reforzar', type: 'select', options: opcionesRolRef() },
+      { name: 'personas', label: 'Personas requeridas', type: 'number', required: true, default: 1 },
+      { name: 'prioridad', label: 'Prioridad', type: 'select', options: opcionesPrioridad() },
+      { name: 'obs', label: 'Observaciones', type: 'textarea' },
     ],
   },
 

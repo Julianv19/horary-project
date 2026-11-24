@@ -18,6 +18,7 @@ const menu = [
   { basePath: '/colaboradores', label: 'Colaboradores' },
   { basePath: '/sugerencias', label: 'Sugerencias' },
   { basePath: '/cobertura', label: 'Cobertura' },
+  { basePath: '/demanda', label: 'Demanda' },
   { basePath: '/aforo', label: 'Aforo' },
   { basePath: '/patrones', label: 'Patrones' },
   { basePath: '/descansos', label: 'Descansos' },

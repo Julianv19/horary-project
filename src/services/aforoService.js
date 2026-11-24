@@ -18,6 +18,7 @@ import Patron from '../models/patron.js';
 import Dominical from '../models/dominical.js';
 import Sugerencia from '../models/sugerencia.js';
 import Restriccion from '../models/restriccion.js';
+import Demanda from '../models/demanda.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS, parseYMD } from '../lib/fechas.js';
 import { turnoEfectivo, ventanaTurno, etiquetaTipo, PM_SPLIT, evaluarRestricciones } from '../lib/restricciones.js';
 
@@ -110,6 +111,13 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
   const cobertura = Cobertura.mapaPorSede(sedeId); // [dia][hora][rol_id]
   const horarios = Horario.mapaPorSede(sedeId);    // [dia]={apertura,cierre}
   const fechas = fechasSemana(semanaInicio);
+
+  // Demanda operativa (refuerzo por franja/rol) agrupada por día de la semana.
+  const demandaPorDia = {};
+  for (const dm of Demanda.activasPorSede(sedeId)) {
+    if (!dm.rol_id) continue; // el refuerzo general se reporta, no se asigna por rol
+    (demandaPorDia[dm.dia_semana] ??= []).push(dm);
+  }
 
   // Descansos APROBADOS dentro de la semana → mapa usuario_id -> Set(diaIndex)
   const forzados = new Map();
@@ -228,6 +236,13 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
         (rem[rolId] ??= {});
         rem[rolId][hora] = covDia[hora][rolId];
       }
+    }
+    // Sumar la demanda operativa (refuerzo) a la demanda pendiente de ese día.
+    for (const dm of (demandaPorDia[dia] || [])) {
+      const hi = Math.floor(horaANumero(dm.hora_inicio));
+      const hf = Math.ceil(horaANumero(dm.hora_fin));
+      (rem[dm.rol_id] ??= {});
+      for (let h = hi; h < hf; h++) rem[dm.rol_id][h] = (rem[dm.rol_id][h] || 0) + dm.personas;
     }
 
     const descontar = (rolId, ini, fin) => {
@@ -571,6 +586,35 @@ export function validar(sedeId, semanaInicio) {
           });
         }
       }
+    }
+  }
+
+  // 5) Déficit de demanda operativa (no bloquea): avisa si una franja no se cubre.
+  const asignado = {};
+  for (const t of turnos) {
+    const c = byId.get(t.usuario_id);
+    if (!c) continue;
+    const dia = fechaADia[t.fecha];
+    const ini = Math.floor(horaANumero(t.hora_inicio));
+    const fin = Math.ceil(horaANumero(t.hora_fin));
+    (asignado[dia] ??= {});
+    (asignado[dia][c.rol_id] ??= {});
+    for (let h = ini; h < fin; h++) asignado[dia][c.rol_id][h] = (asignado[dia][c.rol_id][h] || 0) + 1;
+  }
+  for (const dm of Demanda.activasPorSede(sedeId)) {
+    if (!dm.rol_id) continue;
+    const hi = Math.floor(horaANumero(dm.hora_inicio));
+    const hf = Math.ceil(horaANumero(dm.hora_fin));
+    let peor = Infinity;
+    for (let h = hi; h < hf; h++) peor = Math.min(peor, asignado[dm.dia_semana]?.[dm.rol_id]?.[h] || 0);
+    if (peor < dm.personas) {
+      const rolNombre = colaboradores.find((c) => c.rol_id === dm.rol_id)?.rol || `rol ${dm.rol_id}`;
+      conflictos.push({
+        colaborador: rolNombre,
+        turno: `${DIAS[dm.dia_semana]} ${dm.hora_inicio}–${dm.hora_fin}`,
+        motivo: `Déficit de demanda (prioridad ${dm.prioridad}): faltan ${dm.personas - peor} de ${dm.personas}`,
+        severidad: 'sugerencia',
+      });
     }
   }
 

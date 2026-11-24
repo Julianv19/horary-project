@@ -41,6 +41,7 @@ node db/migrate_auth.js          # crea accesos: admin + una cuenta por colabora
 node db/migrate_restricciones.js # restricciones individuales + "en inducción"
 node db/migrate_sugerencias.js   # tabla de sugerencias y solicitudes
 node db/migrate_restricciones2.js # restricciones múltiples (vacaciones, días/franjas)
+node db/migrate_demanda.js       # demanda operativa (refuerzo por franja/rol)
 node db/migrate_colores.js       # colores corporativos por rol
 node db/seed_cobertura.js        # (opcional) cobertura de ejemplo para probar el aforo
 npm run dev                      # arranca en http://localhost:3000 (recarga en caliente)
