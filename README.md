@@ -43,6 +43,7 @@ node db/migrate_sugerencias.js   # tabla de sugerencias y solicitudes
 node db/migrate_restricciones2.js # restricciones múltiples (vacaciones, días/franjas)
 node db/migrate_demanda.js       # demanda operativa (refuerzo por franja/rol)
 node db/migrate_contingencias.js # contingencias, historial y snapshot original
+node db/migrate_inducciones.js   # inducciones (colaborador nuevo + mentor)
 node db/migrate_colores.js       # colores corporativos por rol
 node db/seed_cobertura.js        # (opcional) cobertura de ejemplo para probar el aforo
 npm run dev                      # arranca en http://localhost:3000 (recarga en caliente)

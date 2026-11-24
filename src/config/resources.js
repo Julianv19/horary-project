@@ -12,8 +12,11 @@ import Jornada from '../models/jornada.js';
 import Usuario from '../models/usuario.js';
 import Patron from '../models/patron.js';
 import Demanda, { PRIORIDADES } from '../models/demanda.js';
+import Induccion from '../models/induccion.js';
 import { RESTRICCION_TIPOS, RESTRICCION_TURNOS } from '../lib/restricciones.js';
 import { DIAS } from '../lib/fechas.js';
+
+const opcionesUsuario = () => Usuario.listar().map((u) => ({ value: u.id, label: `${u.nombre} · ${u.rol}` }));
 
 const opcionesDia = () => DIAS.map((d, i) => ({ value: i, label: d }));
 const opcionesPrioridad = () => PRIORIDADES.map((p) => ({ value: p, label: p }));
@@ -91,6 +94,26 @@ export const resources = {
       { name: 'rol_id', label: 'Rol a reforzar', type: 'select', options: opcionesRolRef() },
       { name: 'personas', label: 'Personas requeridas', type: 'number', required: true, default: 1 },
       { name: 'prioridad', label: 'Prioridad', type: 'select', options: opcionesPrioridad() },
+      { name: 'obs', label: 'Observaciones', type: 'textarea' },
+    ],
+  },
+
+  inducciones: {
+    basePath: '/inducciones',
+    singular: 'inducción',
+    plural: 'Inducciones',
+    model: Induccion,
+    columns: [
+      { key: 'nuevo', label: 'Colaborador nuevo' },
+      { key: 'mentor', label: 'Mentor' },
+      { key: 'periodo', label: 'Periodo' },
+      { key: 'activa', label: 'Activa', type: 'bool' },
+    ],
+    fields: () => [
+      { name: 'usuario_id', label: 'Colaborador nuevo', type: 'select', required: true, options: opcionesUsuario() },
+      { name: 'mentor_id', label: 'Mentor (experimentado)', type: 'select', options: [{ value: '', label: '(sin mentor)' }, ...opcionesUsuario()], help: 'El generador procurará ponerlos en el mismo turno.' },
+      { name: 'fecha_inicio', label: 'Inicio de inducción', type: 'date' },
+      { name: 'fecha_fin', label: 'Fin de inducción', type: 'date' },
       { name: 'obs', label: 'Observaciones', type: 'textarea' },
     ],
   },

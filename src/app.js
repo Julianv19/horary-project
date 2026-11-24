@@ -17,6 +17,7 @@ const menu = [
   { basePath: '/', label: 'Tablero' },
   { basePath: '/colaboradores', label: 'Colaboradores' },
   { basePath: '/sugerencias', label: 'Sugerencias' },
+  { basePath: '/inducciones', label: 'Inducciones' },
   { basePath: '/cobertura', label: 'Cobertura' },
   { basePath: '/demanda', label: 'Demanda' },
   { basePath: '/aforo', label: 'Aforo' },

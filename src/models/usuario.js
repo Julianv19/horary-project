@@ -25,6 +25,7 @@ export const Usuario = {
                 WHEN EXISTS (SELECT 1 FROM restriccion r WHERE r.usuario_id=u.id AND r.activa=1 AND r.tipo='VACACIONES' AND r.estado='APROBADA' AND date('now') BETWEEN r.fecha_inicio AND r.fecha_fin) THEN 'VACACIONES'
                 WHEN EXISTS (SELECT 1 FROM ausencia a WHERE a.usuario_id=u.id AND a.tipo IN ('LICENCIA','PERMISO') AND date('now') BETWEEN a.fecha_inicio AND a.fecha_fin) THEN 'AUSENTE'
                 WHEN EXISTS (SELECT 1 FROM descanso_solicitud d WHERE d.usuario_id=u.id AND d.estado='APROBADA' AND d.fecha=date('now')) THEN 'DESCANSO'
+                WHEN EXISTS (SELECT 1 FROM induccion i WHERE i.usuario_id=u.id AND i.activa=1 AND (i.fecha_inicio IS NULL OR date('now') >= i.fecha_inicio) AND (i.fecha_fin IS NULL OR date('now') <= i.fecha_fin)) THEN 'INDUCCION'
                 WHEN u.es_nuevo = 1 THEN 'INDUCCION'
                 ELSE 'DISPONIBLE'
               END AS estado

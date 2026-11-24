@@ -203,6 +203,19 @@ CREATE TABLE IF NOT EXISTS sugerencia (
 );
 
 -- ---------------------------------------------------------------------
+--  INDUCCION  (colaborador nuevo + mentor que lo acompaña)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS induccion (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id   INTEGER NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  mentor_id    INTEGER REFERENCES usuario(id) ON DELETE SET NULL,
+  fecha_inicio TEXT,
+  fecha_fin    TEXT,
+  obs          TEXT,
+  activa       INTEGER NOT NULL DEFAULT 1
+);
+
+-- ---------------------------------------------------------------------
 --  DEMANDA  (demanda operativa: refuerzo por franja y rol)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS demanda (

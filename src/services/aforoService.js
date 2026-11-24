@@ -19,6 +19,7 @@ import Dominical from '../models/dominical.js';
 import Sugerencia from '../models/sugerencia.js';
 import Restriccion from '../models/restriccion.js';
 import Demanda from '../models/demanda.js';
+import Induccion from '../models/induccion.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS, parseYMD } from '../lib/fechas.js';
 import { turnoEfectivo, ventanaTurno, etiquetaTipo, PM_SPLIT, evaluarRestricciones } from '../lib/restricciones.js';
 
@@ -158,6 +159,15 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
   // Regla administrativa: reparto obligatorio mañana / tarde-noche.
   const adminTurno = turnosAdministrativos(colaboradores, semanaInicio);
 
+  // Turno OBLIGATORIO de un colaborador (regla administrativa, restricción o turno fijo).
+  const colaboradorPorId = new Map(colaboradores.map((x) => [x.id, x]));
+  const turnoObligatorio = (colab) => {
+    const rs = restrPorUsuario.get(colab.id) || [];
+    const fijo = rs.some((r) => r.tipo === 'FIJO_MANANA') ? 'MANANA'
+      : rs.some((r) => r.tipo === 'FIJO_TARDE_NOCHE') ? 'TARDE_NOCHE' : null;
+    return adminTurno.get(colab.id) || turnoEfectivo(colab) || fijo;
+  };
+
   // Sugerencias (preferencia suave de turno; no sobrescriben lo obligatorio).
   const opuesto = (t) => (t === 'MANANA' ? 'TARDE_NOCHE' : 'MANANA');
   const sPrioriza = new Map();
@@ -175,6 +185,12 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
     restrPorUsuario.get(r.usuario_id).push(r);
   }
 
+  // Inducciones vigentes: colaborador nuevo -> mentor (para alinear turnos).
+  const mentorDe = new Map();
+  for (const ind of Induccion.vigentesPorSede(sedeId, fechas[0])) {
+    if (ind.mentor_id) mentorDe.set(ind.usuario_id, ind.mentor_id);
+  }
+
   // Precalcular reglas por colaborador. Ausencias y descansos tienen prioridad;
   // si tiene patrón, el patrón define los días y horas de trabajo.
   const plan = colaboradores.map((c, idx) => {
@@ -190,10 +206,15 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
       if (evaluarRestricciones(restr, { diaSemana: d, fecha: fechas[d], open: 0, close: 24 }).bloqueado) bloqueados.add(d);
     }
     // Turno fijo por restricción (además del nivel usuario / regla administrativa).
-    const restrTurnoFijo = restr.some((r) => r.tipo === 'FIJO_MANANA') ? 'MANANA'
-      : restr.some((r) => r.tipo === 'FIJO_TARDE_NOCHE') ? 'TARDE_NOCHE' : null;
-    // Turno: obligatorio (regla administrativa o restricción) y, si no lo hay, sugerencia.
-    const forcedTurno = adminTurno.get(c.id) || turnoEfectivo(c) || restrTurnoFijo || turnoSugerido(c.id);
+    // Turno: obligatorio (regla admin / restricción) > turno del mentor (inducción)
+    // > preferencia sugerida.
+    const obligatorio = turnoObligatorio(c);
+    let turnoMentor = null;
+    if (c.es_nuevo && mentorDe.has(c.id)) {
+      const m = colaboradorPorId.get(mentorDe.get(c.id));
+      if (m) turnoMentor = turnoObligatorio(m);
+    }
+    const forcedTurno = obligatorio || turnoMentor || turnoSugerido(c.id);
     const fuera = (d) => fueraPorAusencia.has(d) || bloqueados.has(d);
 
     if (patron) {
