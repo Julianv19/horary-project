@@ -80,3 +80,12 @@ test('sugerencia PRIORIZAR_TURNO tarde-noche coloca al colaborador en la tarde',
   assert.ok(ts.length > 0);
   for (const t of ts) assert.ok(hhToNum(t.hora_inicio) >= 16, `turno no es de tarde-noche: ${t.hora_inicio}-${t.hora_fin}`);
 });
+
+test('vacaciones aprobadas: el colaborador no recibe turnos esa semana', () => {
+  const w = new DatabaseSync(tmpFile);
+  w.prepare(`INSERT INTO restriccion (usuario_id,tipo,estado,fecha_inicio,fecha_fin,activa)
+             VALUES (3,'VACACIONES','APROBADA','2026-11-16','2026-11-22',1)`).run();
+  w.close();
+  aforo.generar(1, SEM);
+  assert.equal(turnosDe('COCINA MANANA').length, 0, 'un colaborador de vacaciones no debe tener turnos');
+});

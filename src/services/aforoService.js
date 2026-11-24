@@ -17,8 +17,9 @@ import Ausencia from '../models/ausencia.js';
 import Patron from '../models/patron.js';
 import Dominical from '../models/dominical.js';
 import Sugerencia from '../models/sugerencia.js';
+import Restriccion from '../models/restriccion.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS, parseYMD } from '../lib/fechas.js';
-import { turnoEfectivo, ventanaTurno, etiquetaTipo, PM_SPLIT } from '../lib/restricciones.js';
+import { turnoEfectivo, ventanaTurno, etiquetaTipo, PM_SPLIT, evaluarRestricciones } from '../lib/restricciones.js';
 
 // Roles administrativos que deben repartirse mañana / tarde-noche.
 const ROLES_ADMIN = new Set(['ADMINISTRADOR', 'ASISTENTE ADMON']);
@@ -159,6 +160,13 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
   }
   const turnoSugerido = (id) => sPrioriza.get(id) || (sEvita.has(id) ? opuesto(sEvita.get(id)) : null);
 
+  // Restricciones múltiples por colaborador (vacaciones, días/franjas, rangos).
+  const restrPorUsuario = new Map();
+  for (const r of Restriccion.activasPorSede(sedeId)) {
+    if (!restrPorUsuario.has(r.usuario_id)) restrPorUsuario.set(r.usuario_id, []);
+    restrPorUsuario.get(r.usuario_id).push(r);
+  }
+
   // Precalcular reglas por colaborador. Ausencias y descansos tienen prioridad;
   // si tiene patrón, el patrón define los días y horas de trabajo.
   const plan = colaboradores.map((c, idx) => {
@@ -166,31 +174,39 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
     const fueraPorAusencia = ausentes.get(c.id) || new Set();
     const solicitados = new Set(forzados.get(c.id) || []);
     const patron = c.patron_id ? patronDias.get(c.patron_id) : null;
-    // Turno: obligatorio (regla administrativa o restricción) y, si no lo hay,
-    // la preferencia suave de las sugerencias.
-    const forcedTurno = adminTurno.get(c.id) || turnoEfectivo(c) || turnoSugerido(c.id);
+    const restr = restrPorUsuario.get(c.id) || [];
+
+    // Días bloqueados por restricciones (vacaciones aprobadas, días no disponibles).
+    const bloqueados = new Set();
+    for (let d = 0; d < 7; d++) {
+      if (evaluarRestricciones(restr, { diaSemana: d, fecha: fechas[d], open: 0, close: 24 }).bloqueado) bloqueados.add(d);
+    }
+    // Turno fijo por restricción (además del nivel usuario / regla administrativa).
+    const restrTurnoFijo = restr.some((r) => r.tipo === 'FIJO_MANANA') ? 'MANANA'
+      : restr.some((r) => r.tipo === 'FIJO_TARDE_NOCHE') ? 'TARDE_NOCHE' : null;
+    // Turno: obligatorio (regla administrativa o restricción) y, si no lo hay, sugerencia.
+    const forcedTurno = adminTurno.get(c.id) || turnoEfectivo(c) || restrTurnoFijo || turnoSugerido(c.id);
+    const fuera = (d) => fueraPorAusencia.has(d) || bloqueados.has(d);
 
     if (patron) {
-      // Trabaja los días que el patrón define con turnos (salvo ausencia/descanso).
       const trabaja = [0, 1, 2, 3, 4, 5, 6].filter(
-        (d) => patron[d] && patron[d].length && !fueraPorAusencia.has(d) && !solicitados.has(d)
+        (d) => patron[d] && patron[d].length && !fuera(d) && !solicitados.has(d)
       );
-      return { c, target, patron, forcedTurno, trabaja: new Set(trabaja) };
+      return { c, target, patron, forcedTurno, restr, trabaja: new Set(trabaja) };
     }
 
     // Sin patrón: colocación automática con descanso.
     const permitidos = diasPermitidos(c);
-    const base = permitidos.filter((d) => !fueraPorAusencia.has(d));
+    const base = permitidos.filter((d) => !fuera(d));
     const necesita = Math.max(0, base.length - (c.dias_trabajo || 6));
     const descanso = new Set([...solicitados].filter((d) => base.includes(d)));
-    // Descanso dominical rotado (domingo = día 6) tiene prioridad.
     if (domingoDescanso.has(c.id) && base.includes(6)) descanso.add(6);
     for (const d of ordenPreferencia(base, idx)) {
       if (descanso.size >= necesita) break;
       descanso.add(d);
     }
     const trabaja = base.filter((d) => !descanso.has(d));
-    return { c, target, patron: null, forcedTurno, trabaja: new Set(trabaja) };
+    return { c, target, patron: null, forcedTurno, restr, trabaja: new Set(trabaja) };
   });
 
   const turnos = [];
@@ -234,10 +250,13 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
         continue;
       }
 
-      // Sin patrón: bloque contiguo dentro de la ventana permitida (restricción
-      // individual o regla administrativa) que cubra la mayor demanda.
-      const [wOpen, wClose] = ventanaTurno(open, close, p.forcedTurno);
-      const L = Math.min(p.target, wClose - wOpen);
+      // Sin patrón: bloque contiguo dentro de la ventana permitida (turno obligatorio
+      // + recorte por restricciones del día) que cubra la mayor demanda.
+      let [wOpen, wClose] = ventanaTurno(open, close, p.forcedTurno);
+      const ev = evaluarRestricciones(p.restr || [], { diaSemana: dia, fecha: fechas[dia], open, close });
+      wOpen = Math.max(wOpen, ev.ventana[0]);
+      wClose = Math.min(wClose, ev.ventana[1]);
+      const L = Math.min(p.target, Math.max(0, wClose - wOpen));
       if (L <= 0) continue;
       const { start } = mejorVentana(wOpen, wClose, L, rem[p.c.rol_id] || {});
       turnos.push({

@@ -10,6 +10,7 @@ import * as ausencia from '../controllers/ausenciaController.js';
 import * as patron from '../controllers/patronController.js';
 import * as dominical from '../controllers/dominicalController.js';
 import * as sugerencia from '../controllers/sugerenciaController.js';
+import * as restriccion from '../controllers/restriccionController.js';
 import * as auth from '../controllers/authController.js';
 import * as miHorario from '../controllers/miHorarioController.js';
 import { requireLogin, requireAdmin } from '../middleware/auth.js';
@@ -35,6 +36,13 @@ router.get('/', dashboard.index);
 for (const cfg of Object.values(resources)) {
   registrarRutas(router, cfg.basePath, crudFactory(cfg));
 }
+
+// --- Restricciones por colaborador ---
+router.get('/colaboradores/:id/restricciones', restriccion.index);
+router.post('/colaboradores/:id/restricciones', restriccion.crear);
+router.post('/colaboradores/:id/restricciones/:rid/eliminar', restriccion.eliminar);
+router.post('/colaboradores/:id/restricciones/:rid/toggle', restriccion.toggle);
+router.post('/colaboradores/:id/restricciones/:rid/estado', restriccion.estado);
 
 // --- Cobertura requerida ---
 router.get('/cobertura', cobertura.editor);

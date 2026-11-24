@@ -20,6 +20,7 @@ export function crudFactory(cfg) {
         titulo: plural,
         basePath, singular, plural, columns,
         items: model.all(),
+        extraActions: cfg.extraActions || [],
         flash: flash(req),
       });
     },

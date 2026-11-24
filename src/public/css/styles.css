@@ -246,6 +246,11 @@ td.acciones form { margin: 0; }
 .form-actions { display: flex; gap: .75rem; margin-top: 1rem; }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
 .btn.ghost:hover { background: var(--brand-soft); color: var(--brand-dark); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.dias-check { display: flex; gap: .8rem; flex-wrap: wrap; }
+.dias-check .dchk { display: inline-flex; align-items: center; gap: .3rem; font-weight: 500; font-size: .85rem; }
+.dias-check input { width: 18px; height: 18px; accent-color: var(--brand); }
+@media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
 .form-card.inline { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; max-width: none; }
 .form-card.inline .field { margin-bottom: 0; }
 .form-card.inline .form-actions { margin-top: 0; }

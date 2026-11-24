@@ -202,6 +202,27 @@ CREATE TABLE IF NOT EXISTS sugerencia (
   creado_en       TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ---------------------------------------------------------------------
+--  RESTRICCION  (restricciones múltiples por colaborador)
+--  tipo: FIJO_MANANA|FIJO_TARDE_NOCHE|MEDICA|ACADEMICA|VACACIONES|
+--        DIAS_NO_DISPONIBLE|FRANJA_NO_DISPONIBLE
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS restriccion (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id   INTEGER NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  tipo         TEXT NOT NULL,
+  turno        TEXT,
+  fecha_inicio TEXT,
+  fecha_fin    TEXT,
+  dias_semana  TEXT,
+  hora_inicio  TEXT,
+  hora_fin     TEXT,
+  estado       TEXT DEFAULT 'APROBADA',
+  obs          TEXT,
+  activa       INTEGER NOT NULL DEFAULT 1,
+  creado_en    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Índices útiles
 CREATE INDEX IF NOT EXISTS idx_turno_usuario  ON turno(usuario_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_turno_prog     ON turno(programacion_id);

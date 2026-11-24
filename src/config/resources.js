@@ -37,6 +37,7 @@ export const resources = {
     singular: 'colaborador',
     plural: 'Colaboradores',
     model: Usuario,
+    extraActions: [{ label: 'Restricciones', path: 'restricciones' }],
     columns: [
       { key: 'nombre', label: 'Nombre' },
       { key: 'area', label: 'Área' },

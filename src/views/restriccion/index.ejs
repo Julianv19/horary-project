@@ -1,0 +1,105 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Restricciones · <%= usuario.nombre %></h1></section>
+<p class="muted">El generador consulta estas restricciones antes de asignar turnos. Las
+obligatorias (médica, académica, vacaciones aprobadas, turno fijo, días/franjas no disponibles)
+nunca se incumplen.</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<h2>Agregar restricción</h2>
+<form method="post" action="/colaboradores/<%= usuario.id %>/restricciones" class="form-card">
+  <%- include('../partials/csrf') %>
+  <div class="field">
+    <label for="tipo">Tipo <span class="req">*</span></label>
+    <select name="tipo" id="tipo" required>
+      <% tipos.forEach(t => { %><option value="<%= t.val %>"><%= t.label %></option><% }) %>
+    </select>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label for="turno">Turno (fijo / médica / académica)</label>
+      <select name="turno" id="turno">
+        <% turnos.forEach(t => { %><option value="<%= t.val %>"><%= t.label %></option><% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label>Estado (solo vacaciones)</label>
+      <select name="estado">
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="APROBADA">Aprobada</option>
+        <option value="RECHAZADA">Rechazada</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="field"><label>Desde (rango)</label><input type="date" name="fecha_inicio"></div>
+    <div class="field"><label>Hasta (rango)</label><input type="date" name="fecha_fin"></div>
+  </div>
+  <div class="grid-2">
+    <div class="field"><label>Franja no disponible — desde</label><input type="time" name="hora_inicio"></div>
+    <div class="field"><label>Franja no disponible — hasta</label><input type="time" name="hora_fin"></div>
+  </div>
+  <div class="field">
+    <label>Días de la semana afectados</label>
+    <div class="dias-check">
+      <% DIAS.forEach((d, i) => { %>
+        <label class="dchk"><input type="checkbox" name="dias_semana" value="<%= i %>"> <%= d.slice(0,3) %></label>
+      <% }) %>
+    </div>
+  </div>
+  <div class="field"><label>Observaciones</label><input type="text" name="obs" placeholder="Opcional"></div>
+  <div class="form-actions">
+    <button type="submit" class="btn">Agregar</button>
+    <a class="btn ghost" href="/colaboradores">Volver</a>
+  </div>
+</form>
+
+<h2>Restricciones registradas</h2>
+<% if (restricciones.length === 0) { %>
+  <p class="muted">Sin restricciones.</p>
+<% } else { %>
+  <table>
+    <thead><tr><th>Tipo</th><th>Detalle</th><th>Estado</th><th>Activa</th><th class="acciones">Acciones</th></tr></thead>
+    <tbody>
+      <% const tl = { FIJO_MANANA:'Turno fijo mañana', FIJO_TARDE_NOCHE:'Turno fijo tarde-noche', MEDICA:'Médica', ACADEMICA:'Académica', VACACIONES:'Vacaciones', DIAS_NO_DISPONIBLE:'Días no disponibles', FRANJA_NO_DISPONIBLE:'Franja no disponible' }; %>
+      <% restricciones.forEach(r => { %>
+        <tr class="<%= r.activa ? '' : 'inactiva' %>">
+          <td><strong><%= tl[r.tipo] || r.tipo %></strong></td>
+          <td>
+            <% if (r.turno) { %><%= r.turno === 'MANANA' ? 'Mañana' : 'Tarde-noche' %> · <% } %>
+            <% if (r.fecha_inicio || r.fecha_fin) { %><%= r.fecha_inicio || '…' %> → <%= r.fecha_fin || '…' %> · <% } %>
+            <% if (r.hora_inicio) { %><%= r.hora_inicio %>–<%= r.hora_fin %> · <% } %>
+            <% if (r.dias_semana) { %>días [<%= r.dias_semana %>] · <% } %>
+            <%= r.obs || '' %>
+          </td>
+          <td>
+            <% if (r.tipo === 'VACACIONES') { %>
+              <span class="pill <%= r.estado === 'APROBADA' ? 'yes' : 'no' %>"><%= r.estado %></span>
+            <% } else { %>—<% } %>
+          </td>
+          <td><span class="pill <%= r.activa ? 'yes' : 'no' %>"><%= r.activa ? 'Sí' : 'No' %></span></td>
+          <td class="acciones">
+            <% if (r.tipo === 'VACACIONES' && r.estado !== 'APROBADA') { %>
+              <form method="post" action="/colaboradores/<%= usuario.id %>/restricciones/<%= r.id %>/estado">
+                <%- include('../partials/csrf') %><input type="hidden" name="estado" value="APROBADA">
+                <button class="link" type="submit">Aprobar</button>
+              </form>
+            <% } %>
+            <form method="post" action="/colaboradores/<%= usuario.id %>/restricciones/<%= r.id %>/toggle">
+              <%- include('../partials/csrf') %>
+              <button class="link" type="submit"><%= r.activa ? 'Desactivar' : 'Activar' %></button>
+            </form>
+            <form method="post" action="/colaboradores/<%= usuario.id %>/restricciones/<%= r.id %>/eliminar" onsubmit="return confirm('¿Eliminar?');">
+              <%- include('../partials/csrf') %>
+              <button class="link danger" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>

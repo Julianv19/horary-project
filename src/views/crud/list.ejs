@@ -41,6 +41,9 @@
             </td>
           <% }) %>
           <td class="acciones">
+            <% (typeof extraActions !== 'undefined' ? extraActions : []).forEach(a => { %>
+              <a class="link" href="<%= basePath %>/<%= item.id %>/<%= a.path %>"><%= a.label %></a>
+            <% }) %>
             <a class="link" href="<%= basePath %>/<%= item.id %>/editar">Editar</a>
             <form method="post" action="<%= basePath %>/<%= item.id %>/eliminar"
                   onsubmit="return confirm('¿Eliminar este registro? Esta acción no se puede deshacer.');">
