@@ -107,6 +107,16 @@ function mejorVentana(open, close, L, remHora) {
 }
 
 // ---- Generación -----------------------------------------------------
+//  JERARQUÍA DE REGLAS (de mayor a menor prioridad; req 9). Una condición
+//  obligatoria nunca se incumple para satisfacer una de menor prioridad:
+//    1. Restricciones médicas, incapacidades y vacaciones  (bloquean el día)
+//    2. Descansos aprobados y disponibilidad obligatoria    (bloquean el día)
+//    3. Reglas administrativas (reparto mañana/tarde-noche) y turnos fijos
+//    4. Restricciones académicas y franjas no disponibles   (recortan ventana)
+//    5. Cobertura mínima y demanda operativa del restaurante (orientan la colocación)
+//    6. Inducción: el nuevo hereda el turno de su mentor
+//    7. Sugerencias y preferencias operativas (turno sugerido)
+//    8. Equilibrio de jornadas (descanso en días de menor demanda, rotación)
 export function generar(sedeId, semanaInicio, opciones = {}) {
   const colaboradores = Usuario.paraProgramacion(sedeId);
   const cobertura = Cobertura.mapaPorSede(sedeId); // [dia][hora][rol_id]
@@ -637,6 +647,27 @@ export function validar(sedeId, semanaInicio) {
         severidad: 'sugerencia',
       });
     }
+  }
+
+  // 6) Cobertura mínima (consolidada): cuántos cupos requeridos quedan sin cubrir.
+  const cob = Cobertura.mapaPorSede(sedeId);
+  let faltantes = 0;
+  for (const d of Object.keys(cob)) {
+    for (const h of Object.keys(cob[d])) {
+      for (const rolId of Object.keys(cob[d][h])) {
+        const req = cob[d][h][rolId];
+        const asg = asignado[d]?.[rolId]?.[Number(h)] || 0;
+        if (asg < req) faltantes += req - asg;
+      }
+    }
+  }
+  if (faltantes > 0) {
+    conflictos.push({
+      colaborador: 'Cobertura mínima',
+      turno: 'Semana',
+      motivo: `${faltantes} cupo(s) requerido(s) sin cubrir (ver detalle por hora en el horario)`,
+      severidad: 'sugerencia',
+    });
   }
 
   const obligatorias = conflictos.filter((x) => x.severidad === 'obligatoria').length;

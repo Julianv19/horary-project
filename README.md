@@ -70,6 +70,25 @@ npm run dev                      # arranca en http://localhost:3000 (recarga en 
 
 > Heurística voraz: bloques contiguos para quien no tiene patrón, no óptima pero auditable.
 
+## Jerarquía de reglas del generador
+
+El motor aplica las condiciones en este orden de prioridad (una obligatoria nunca
+se incumple para satisfacer una preferencia):
+
+1. Restricciones médicas, incapacidades y vacaciones (bloquean el día).
+2. Descansos aprobados y disponibilidad obligatoria.
+3. Reglas administrativas (reparto mañana / tarde-noche) y turnos fijos.
+4. Restricciones académicas y franjas horarias no disponibles (recortan la ventana).
+5. Cobertura mínima y demanda operativa del restaurante.
+6. Inducción: el colaborador nuevo hereda el turno de su mentor.
+7. Sugerencias y preferencias operativas.
+8. Equilibrio de jornadas (descanso en días de menor demanda, rotación dominical).
+
+Antes de publicar, la validación consolida los conflictos: **obligatorios** (restricción
+incumplida, dos administrativos en el mismo turno) que **bloquean la publicación**, y
+**avisos** no bloqueantes (sugerencia incumplida, colaborador nuevo sin acompañamiento,
+déficit de demanda y de cobertura mínima).
+
 ## Patrones del administrador
 
 En **Patrones** (`/patrones`) el administrador define plantillas con turnos por día
