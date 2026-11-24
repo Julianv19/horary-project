@@ -13,18 +13,12 @@
 </section>
 
 <section class="cards">
-  <div class="card">
-    <span class="card-num"><%= totalColaboradores %></span>
-    <span class="card-label">Colaboradores</span>
-  </div>
-  <div class="card">
-    <span class="card-num"><%= jornadas.length %></span>
-    <span class="card-label">Tipos de jornada</span>
-  </div>
-  <div class="card">
-    <span class="card-num"><%= contarPorArea.length %></span>
-    <span class="card-label">Áreas con personal</span>
-  </div>
+  <% indicadores.forEach(k => { %>
+    <div class="card <%= k.cls ? 'card-estado ' + k.cls : '' %>">
+      <span class="card-num"><%= k.valor %></span>
+      <span class="card-label"><%= k.label %></span>
+    </div>
+  <% }) %>
 </section>
 
 <section>

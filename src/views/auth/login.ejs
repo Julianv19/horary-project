@@ -3,7 +3,7 @@
 <div class="login-wrap">
   <form method="post" action="/login" class="form-card login-card">
     <%- include('../partials/csrf') %>
-    <div class="login-brand">🍗 <strong>FRISBY</strong></div>
+    <div class="login-brand"><img src="/img/frisby-logo.jpg" alt="FRISBY"></div>
     <p class="login-sub">Gestión de horarios</p>
     <% if (error) { %><div class="alert err"><%= error %></div><% } %>
     <div class="field">

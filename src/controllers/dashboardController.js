@@ -8,6 +8,19 @@ export function index(req, res) {
 
   const usuarios = Usuario.listar(sedeId);
 
+  // Indicadores por estado (req 11).
+  const estados = { DISPONIBLE: 0, DESCANSO: 0, INCAPACIDAD: 0, VACACIONES: 0, INDUCCION: 0, AUSENTE: 0, INACTIVO: 0 };
+  for (const u of usuarios) estados[u.estado] = (estados[u.estado] || 0) + 1;
+
+  const indicadores = [
+    { label: 'Colaboradores', valor: usuarios.length, cls: '' },
+    { label: 'Disponibles', valor: estados.DISPONIBLE, cls: 'est-disp' },
+    { label: 'Descansando', valor: estados.DESCANSO, cls: 'est-desc' },
+    { label: 'Incapacidad', valor: estados.INCAPACIDAD, cls: 'est-inc' },
+    { label: 'Vacaciones', valor: estados.VACACIONES, cls: 'est-vac' },
+    { label: 'En inducción', valor: estados.INDUCCION, cls: 'est-ind' },
+  ];
+
   // Agrupar colaboradores por área y luego por rol (lista única discriminada por rol).
   const porArea = new Map();
   for (const u of usuarios) {
@@ -29,6 +42,7 @@ export function index(req, res) {
     jornadas: Catalogo.jornadas(),
     totalColaboradores: usuarios.length,
     contarPorArea: Usuario.contarPorArea(sedeId),
+    indicadores,
     grupos,
   });
 }

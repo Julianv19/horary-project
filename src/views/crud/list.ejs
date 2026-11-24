@@ -32,6 +32,9 @@
                 <span class="pill <%= val ? 'yes' : 'no' %>"><%= val ? 'Sí' : 'No' %></span>
               <% } else if (c.type === 'color') { %>
                 <span class="swatch" style="background: <%= val %>"></span> <%= val %>
+              <% } else if (c.type === 'estado') { %>
+                <% const est = { DISPONIBLE:['est-disp','Disponible'], DESCANSO:['est-desc','Descansando'], INCAPACIDAD:['est-inc','Incapacidad'], VACACIONES:['est-vac','Vacaciones'], INDUCCION:['est-ind','Inducción'], AUSENTE:['est-aus','Ausente'], INACTIVO:['est-off','Inactivo'] }[val] || ['est-disp', val]; %>
+                <span class="estado-badge <%= est[0] %>"><%= est[1] %></span>
               <% } else { %>
                 <%= (val === null || val === undefined || val === '') ? '—' : val %>
               <% } %>

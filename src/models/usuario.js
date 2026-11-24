@@ -17,7 +17,16 @@ export const Usuario = {
               patron.nombre       AS patron,
               u.restriccion_tipo  AS restriccion_tipo,
               u.restriccion_turno AS restriccion_turno,
-              u.es_nuevo          AS es_nuevo
+              u.es_nuevo          AS es_nuevo,
+              CASE
+                WHEN u.activo = 0 THEN 'INACTIVO'
+                WHEN EXISTS (SELECT 1 FROM ausencia a WHERE a.usuario_id=u.id AND a.tipo='INCAPACIDAD' AND date('now') BETWEEN a.fecha_inicio AND a.fecha_fin) THEN 'INCAPACIDAD'
+                WHEN EXISTS (SELECT 1 FROM ausencia a WHERE a.usuario_id=u.id AND a.tipo='VACACIONES' AND date('now') BETWEEN a.fecha_inicio AND a.fecha_fin) THEN 'VACACIONES'
+                WHEN EXISTS (SELECT 1 FROM ausencia a WHERE a.usuario_id=u.id AND a.tipo IN ('LICENCIA','PERMISO') AND date('now') BETWEEN a.fecha_inicio AND a.fecha_fin) THEN 'AUSENTE'
+                WHEN EXISTS (SELECT 1 FROM descanso_solicitud d WHERE d.usuario_id=u.id AND d.estado='APROBADA' AND d.fecha=date('now')) THEN 'DESCANSO'
+                WHEN u.es_nuevo = 1 THEN 'INDUCCION'
+                ELSE 'DISPONIBLE'
+              END AS estado
       FROM usuario u
       JOIN sede         ON sede.id = u.sede_id
       JOIN rol          ON rol.id = u.rol_id

@@ -1,14 +1,17 @@
 :root {
-  /* Identidad FRISBY: rojo corporativo + amarillo de acento */
-  --bg: #faf6f1;
+  /* Identidad FRISBY: amarillo principal + rojo de acción */
+  --bg: #fffdf7;
   --surface: #ffffff;
-  --ink: #241a15;
+  --ink: #2a2118;
   --muted: #7a7169;
-  --brand: #E4002B;        /* rojo Frisby */
+  --primary: #FFC72C;      /* amarillo corporativo (principal) */
+  --primary-dark: #E8A800;
+  --brand: #E4002B;        /* rojo (secundario / acción) */
   --brand-dark: #B80022;
-  --brand-soft: #fdecef;   /* rojo muy claro para fondos */
-  --accent: #FFC72C;       /* amarillo */
-  --line: #ede6de;
+  --brand-soft: #fdecef;   /* rojo muy claro para badges */
+  --yellow-soft: #FFF4D2;  /* amarillo claro para fondos suaves */
+  --accent: #E4002B;
+  --line: #efe7d6;
   --radius: 14px;
   --radius-sm: 9px;
   --shadow: 0 1px 3px rgba(40,20,10,.08);
@@ -34,30 +37,31 @@ h1 { font-size: 1.7rem; }
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: .6rem 1.5rem;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-  border-top: 4px solid var(--brand);
+  padding: .5rem 1.5rem;
+  background: var(--primary);
+  border-bottom: 3px solid var(--brand);
   box-shadow: var(--shadow);
   position: sticky;
   top: 0;
   z-index: 50;
 }
-.brand { font-size: 1.2rem; text-decoration: none; color: var(--ink); font-weight: 700; white-space: nowrap; }
-.brand strong { color: var(--brand); font-weight: 800; letter-spacing: .5px; }
-.brand span { color: var(--muted); margin-left: .4rem; font-weight: 500; font-size: .95rem; }
+.brand { display: flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--ink); font-weight: 700; white-space: nowrap; }
+.brand img { height: 42px; width: auto; display: block; border-radius: 8px; }
+.brand span { color: var(--brand-dark); font-weight: 700; font-size: 1rem; }
 .topbar nav { display: flex; gap: .15rem; flex-wrap: wrap; }
 .topbar nav a {
   text-decoration: none;
-  color: var(--ink);
-  padding: .4rem .7rem;
+  color: #4a3b22;
+  padding: .38rem .68rem;
   border-radius: 999px;
-  font-size: .9rem;
-  font-weight: 500;
+  font-size: .88rem;
+  font-weight: 600;
   transition: background .15s, color .15s;
 }
-.topbar nav a:hover { background: var(--brand-soft); color: var(--brand-dark); }
+.topbar nav a:hover { background: rgba(255,255,255,.55); color: var(--brand-dark); }
 .topbar nav a.active { background: var(--brand); color: #fff; box-shadow: 0 2px 6px rgba(228,0,43,.3); }
+.topbar .userbox .who { color: #4a3b22; }
+.topbar .userbox .link { color: var(--brand-dark); font-weight: 600; }
 
 .topbar .userbox { display: flex; align-items: center; gap: .6rem; margin-left: auto; padding-left: 1rem; }
 .topbar .userbox .who { font-size: .85rem; color: var(--muted); }
@@ -68,8 +72,8 @@ h1 { font-size: 1.7rem; }
 .login-wrap { display: flex; justify-content: center; padding: 3rem 0; }
 .login-card { width: 100%; max-width: 380px; box-shadow: var(--shadow-lg); border-top: 5px solid var(--brand); }
 .login-card h1 { margin-top: 0; color: var(--brand-dark); }
-.login-brand { text-align: center; font-weight: 800; font-size: 1.5rem; margin-bottom: .25rem; }
-.login-brand strong { color: var(--brand); letter-spacing: 1px; }
+.login-brand { text-align: center; margin-bottom: .25rem; }
+.login-brand img { height: 90px; width: auto; border-radius: 12px; }
 .login-sub { text-align: center; color: var(--muted); margin: 0 0 1rem; font-size: .9rem; }
 
 /* --- Barra de publicación --- */
@@ -88,18 +92,18 @@ h1 { font-size: 1.7rem; }
 
 .hero {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-  background: linear-gradient(100deg, var(--brand) 0%, var(--brand-dark) 100%);
-  color: #fff;
+  background: linear-gradient(100deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--ink);
   padding: 1.1rem 1.4rem;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   margin-bottom: 1.25rem;
+  border-left: 6px solid var(--brand);
 }
-.hero h1 { margin: 0; color: #fff; }
-.hero .muted { color: rgba(255,255,255,.85); }
-.hero select, .hero input { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.35); }
-.hero select option { color: var(--ink); }
-.sede-select select { padding: .4rem .6rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,.35); }
+.hero h1 { margin: 0; color: var(--ink); }
+.hero .muted { color: #6b5a33; }
+.hero select, .hero input { background: rgba(255,255,255,.8); color: var(--ink); border: 1px solid rgba(0,0,0,.12); }
+.sede-select select { padding: .4rem .6rem; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,.12); }
 
 .cards { display: flex; gap: 1rem; margin: 1.25rem 0; flex-wrap: wrap; }
 .card {
@@ -117,6 +121,11 @@ h1 { font-size: 1.7rem; }
 .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .card-num { font-size: 2rem; font-weight: 800; color: var(--brand); line-height: 1.1; }
 .card-label { color: var(--muted); font-size: .85rem; }
+.card.card-estado.est-disp::before { background: #1e7a3d; } .card.card-estado.est-disp .card-num { color: #1e7a3d; }
+.card.card-estado.est-desc::before { background: #1e4fb4; } .card.card-estado.est-desc .card-num { color: #1e4fb4; }
+.card.card-estado.est-inc::before  { background: #b4231f; } .card.card-estado.est-inc .card-num  { color: #b4231f; }
+.card.card-estado.est-vac::before  { background: #6b3fb0; } .card.card-estado.est-vac .card-num  { color: #6b3fb0; }
+.card.card-estado.est-ind::before  { background: #cf8a00; } .card.card-estado.est-ind .card-num  { color: #cf8a00; }
 
 h2 { margin-top: 1.75rem; }
 .muted { color: var(--muted); }
@@ -125,7 +134,7 @@ h2 { margin-top: 1.75rem; }
 .area-title {
   margin: .9rem 0 .5rem;
   padding-bottom: .3rem;
-  border-bottom: 2px solid var(--brand-soft);
+  border-bottom: 3px solid var(--primary);
   color: var(--brand-dark);
   text-transform: uppercase;
   font-size: .9rem;
@@ -164,18 +173,16 @@ h2 { margin-top: 1.75rem; }
 
 table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--line); }
-thead th { background: var(--brand-soft); font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; color: var(--brand-dark); font-weight: 700; }
-tbody tr:nth-child(even) td { background: #fcfaf8; }
-tbody tr:hover td { background: #fff6f2; }
+thead th { background: var(--yellow-soft); font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; color: #6b4e00; font-weight: 700; }
+tbody tr:nth-child(even) td { background: #fdfbf5; }
+tbody tr:hover td { background: #fff6da; }
 
 .btn { display: inline-block; margin-top: 1rem; background: var(--brand); color: #fff; padding: .55rem 1.1rem; border-radius: 999px; text-decoration: none; border: none; cursor: pointer; font: inherit; font-weight: 600; box-shadow: 0 2px 8px rgba(228,0,43,.25); transition: background .15s, transform .1s; }
 .btn:hover { background: var(--brand-dark); }
 .btn:active { transform: translateY(1px); }
-/* Botones dentro del hero (fondo rojo) */
-.hero .btn { background: #fff; color: var(--brand); box-shadow: 0 2px 8px rgba(0,0,0,.18); }
-.hero .btn:hover { background: var(--accent); color: var(--ink); }
-.hero .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); box-shadow: none; }
-.hero .btn.ghost:hover { background: rgba(255,255,255,.15); }
+/* Botones dentro del hero (fondo amarillo): rojo de acción */
+.hero .btn.ghost { background: rgba(255,255,255,.65); color: var(--brand-dark); border: 1px solid rgba(0,0,0,.12); box-shadow: none; }
+.hero .btn.ghost:hover { background: #fff; }
 
 .footer { text-align: center; color: var(--muted); padding: 2rem 1rem; }
 
@@ -186,6 +193,16 @@ tbody tr:hover td { background: #fff6f2; }
 .alert.warn { background: #fff6e6; color: #9a6700; border: 1px solid #f2d79b; }
 .alert.validacion ul { margin: .4rem 0 0; padding-left: 1.2rem; }
 tr.inactiva { opacity: .5; }
+
+/* --- Etiquetas de estado de colaborador --- */
+.estado-badge { display: inline-block; padding: .15rem .55rem; border-radius: 999px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+.est-disp { background: #e7f6ec; color: #1e7a3d; }
+.est-desc { background: #e8effd; color: #1e4fb4; }
+.est-inc  { background: #fdecec; color: #b4231f; }
+.est-vac  { background: #efe7fb; color: #6b3fb0; }
+.est-ind  { background: #fff1d6; color: #9a6700; }
+.est-aus  { background: #f1f1f3; color: #555; }
+.est-off  { background: #f1f1f3; color: #999; }
 
 /* --- Píldoras y muestras --- */
 .pill { padding: .1rem .5rem; border-radius: 999px; font-size: .78rem; font-weight: 600; }

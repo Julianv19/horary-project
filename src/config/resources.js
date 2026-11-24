@@ -43,6 +43,7 @@ export const resources = {
       { key: 'rol', label: 'Rol' },
       { key: 'jornada_codigo', label: 'Jornada' },
       { key: 'patron', label: 'Patrón' },
+      { key: 'estado', label: 'Estado', type: 'estado' },
       { key: 'restriccion_tipo', label: 'Restricción' },
       { key: 'sede', label: 'Sede' },
       { key: 'activo', label: 'Activo', type: 'bool' },
