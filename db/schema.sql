@@ -239,6 +239,44 @@ CREATE TABLE IF NOT EXISTS restriccion (
   creado_en    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ---------------------------------------------------------------------
+--  CONTINGENCIAS OPERATIVAS (novedades, historial, snapshot original)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS contingencia (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  sede_id      INTEGER NOT NULL REFERENCES sede(id) ON DELETE CASCADE,
+  usuario_id   INTEGER NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  fecha        TEXT NOT NULL,
+  fecha_fin    TEXT,
+  motivo       TEXT,
+  obs          TEXT,
+  estado       TEXT NOT NULL DEFAULT 'ABIERTA',
+  reemplazo_id INTEGER REFERENCES usuario(id) ON DELETE SET NULL,
+  creado_en    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS historial_cambio (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  programacion_id     INTEGER REFERENCES programacion(id) ON DELETE CASCADE,
+  contingencia_id     INTEGER REFERENCES contingencia(id) ON DELETE SET NULL,
+  fecha_hora          TEXT NOT NULL DEFAULT (datetime('now')),
+  usuario_afectado_id INTEGER REFERENCES usuario(id) ON DELETE SET NULL,
+  reemplazo_id        INTEGER REFERENCES usuario(id) ON DELETE SET NULL,
+  responsable         TEXT,
+  motivo              TEXT,
+  turno_anterior      TEXT,
+  turno_nuevo         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS turno_original (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  programacion_id INTEGER NOT NULL REFERENCES programacion(id) ON DELETE CASCADE,
+  usuario_id      INTEGER NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+  fecha           TEXT NOT NULL,
+  hora_inicio     TEXT NOT NULL,
+  hora_fin        TEXT NOT NULL
+);
+
 -- Índices útiles
 CREATE INDEX IF NOT EXISTS idx_turno_usuario  ON turno(usuario_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_turno_prog     ON turno(programacion_id);

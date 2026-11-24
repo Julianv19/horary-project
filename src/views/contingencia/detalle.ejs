@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Reemplazos · <%= afectado ? afectado.nombre : '' %></h1></section>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<p class="muted">
+  Contingencia del <strong><%= contingencia.fecha %></strong>
+  <% if (contingencia.motivo) { %>· motivo: <%= contingencia.motivo %><% } %>
+  · estado: <span class="pill <%= contingencia.estado === 'RESUELTA' ? 'yes' : 'no' %>"><%= contingencia.estado %></span>
+  · <a href="/contingencias">volver</a>
+</p>
+
+<% if (sinProgramacion) { %>
+  <div class="alert err">No hay un horario generado para esa semana; no hay turnos que reemplazar.</div>
+<% } else if (afectados.length === 0) { %>
+  <div class="alert warn"><%= mensaje || 'El colaborador no tenía turno ese día.' %></div>
+<% } else { %>
+
+  <h2>Turno(s) afectado(s)</h2>
+  <ul>
+    <% afectados.forEach(af => { %><li><%= af.hora_inicio %>–<%= af.hora_fin %> (<%= afectado.rol %>)</li><% }) %>
+  </ul>
+
+  <% if (alerta && alerta.length) { %>
+    <div class="alert err">
+      <strong>⛔ Sin reemplazo viable</strong> para:
+      <ul>
+        <% alerta.forEach(a => { %>
+          <li><%= a.franja %> · rol <%= a.rol %> · faltan <%= a.faltan %> — <%= a.motivo %></li>
+        <% }) %>
+      </ul>
+      <form method="post" action="/contingencias/<%= contingencia.id %>/sin-reemplazo" style="margin-top:.5rem">
+        <%- include('../partials/csrf') %>
+        <button class="btn ghost" type="submit">Marcar como sin reemplazo</button>
+      </form>
+    </div>
+  <% } %>
+
+  <% if (propuestas && propuestas.length) { %>
+    <h2>Propuestas de reemplazo</h2>
+    <table>
+      <thead><tr><th>Colaborador</th><th>Rol</th><th>Turno actual</th><th>Turno propuesto</th><th>Impacto</th><th>H/sem</th><th class="acciones"></th></tr></thead>
+      <tbody>
+        <% propuestas.forEach(p => { %>
+          <tr>
+            <td><strong><%= p.nombre %></strong></td>
+            <td><%= p.rol %></td>
+            <td><%= p.turno_actual %></td>
+            <td><%= p.turno_propuesto %></td>
+            <td><%= p.impacto %></td>
+            <td class="num"><%= p.horas %></td>
+            <td class="acciones">
+              <% if (contingencia.estado !== 'RESUELTA') { %>
+                <form method="post" action="/contingencias/<%= contingencia.id %>/aplicar"
+                      onsubmit="return confirm('¿Confirmar a <%= p.nombre %> como reemplazo? Se actualizará el horario.');">
+                  <%- include('../partials/csrf') %>
+                  <input type="hidden" name="reemplazo_id" value="<%= p.reemplazo_id %>">
+                  <button class="btn" type="submit">Confirmar</button>
+                </form>
+              <% } else { %>—<% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <p class="muted"><small>Al confirmar, se protege el horario original, se actualiza el turno y el cambio queda en el
+      <a href="/historial">historial</a>. No se modifica ningún otro turno sin tu aprobación.</small></p>
+  <% } %>
+<% } %>
+
+<%- include('../partials/footer') %>

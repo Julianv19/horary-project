@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Contingencias operativas</h1></section>
+<p class="muted">Registra una ausencia inesperada (incapacidad, emergencia, cambio de disponibilidad)
+sobre un horario ya generado. El sistema buscará reemplazos viables sin incumplir reglas.</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<form method="post" action="/contingencias" class="form-card inline">
+  <%- include('../partials/csrf') %>
+  <div class="field">
+    <label for="usuario_id">Colaborador afectado <span class="req">*</span></label>
+    <select name="usuario_id" id="usuario_id" required>
+      <option value="">— Seleccionar —</option>
+      <% usuarios.forEach(u => { %><option value="<%= u.id %>"><%= u.nombre %> · <%= u.sede %></option><% }) %>
+    </select>
+  </div>
+  <div class="field"><label>Fecha <span class="req">*</span></label><input type="date" name="fecha" required></div>
+  <div class="field"><label>Hasta (opcional)</label><input type="date" name="fecha_fin"></div>
+  <div class="field"><label>Motivo</label><input type="text" name="motivo" placeholder="Incapacidad, emergencia…"></div>
+  <div class="form-actions"><button type="submit" class="btn">Registrar y buscar reemplazo</button></div>
+</form>
+
+<h2>Registradas</h2>
+<% if (contingencias.length === 0) { %>
+  <p class="muted">No hay contingencias.</p>
+<% } else { %>
+  <table>
+    <thead><tr><th>Colaborador</th><th>Fecha</th><th>Motivo</th><th>Estado</th><th>Reemplazo</th><th class="acciones"></th></tr></thead>
+    <tbody>
+      <% contingencias.forEach(c => { %>
+        <tr>
+          <td><%= c.usuario %></td>
+          <td><%= c.fecha %><% if (c.fecha_fin) { %> → <%= c.fecha_fin %><% } %></td>
+          <td><%= c.motivo || '—' %></td>
+          <td>
+            <% const cl = { ABIERTA:'no', RESUELTA:'yes', SIN_REEMPLAZO:'t-inc' }[c.estado] || 'no'; %>
+            <span class="pill <%= cl %>"><%= c.estado %></span>
+          </td>
+          <td><%= c.reemplazo || '—' %></td>
+          <td class="acciones"><a class="link" href="/contingencias/<%= c.id %>">Ver reemplazos</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>

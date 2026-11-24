@@ -20,6 +20,8 @@ const menu = [
   { basePath: '/cobertura', label: 'Cobertura' },
   { basePath: '/demanda', label: 'Demanda' },
   { basePath: '/aforo', label: 'Aforo' },
+  { basePath: '/contingencias', label: 'Contingencias' },
+  { basePath: '/historial', label: 'Historial' },
   { basePath: '/patrones', label: 'Patrones' },
   { basePath: '/descansos', label: 'Descansos' },
   { basePath: '/incapacidades', label: 'Incapacidades' },

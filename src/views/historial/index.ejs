@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Historial de modificaciones</h1></section>
+<p class="muted">Registro de todos los cambios por contingencias: quién fue reemplazado, por quién,
+cuándo, por quién se hizo y el motivo. El horario original queda protegido.</p>
+
+<% if (cambios.length === 0) { %>
+  <p class="muted">Aún no hay modificaciones registradas.</p>
+<% } else { %>
+  <div class="scroll-x">
+    <table>
+      <thead><tr><th>Fecha y hora</th><th>Afectado</th><th>Reemplazo</th><th>Responsable</th><th>Motivo</th><th>Turno anterior</th><th>Turno nuevo</th></tr></thead>
+      <tbody>
+        <% cambios.forEach(h => { %>
+          <tr>
+            <td><%= h.fecha_hora %></td>
+            <td><%= h.afectado || '—' %></td>
+            <td><%= h.reemplazo || '—' %></td>
+            <td><%= h.responsable || '—' %></td>
+            <td><%= h.motivo || '—' %></td>
+            <td><%= h.turno_anterior || '—' %></td>
+            <td><%= h.turno_nuevo || '—' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

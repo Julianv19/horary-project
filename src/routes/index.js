@@ -11,6 +11,7 @@ import * as patron from '../controllers/patronController.js';
 import * as dominical from '../controllers/dominicalController.js';
 import * as sugerencia from '../controllers/sugerenciaController.js';
 import * as restriccion from '../controllers/restriccionController.js';
+import * as contingencia from '../controllers/contingenciaController.js';
 import * as auth from '../controllers/authController.js';
 import * as miHorario from '../controllers/miHorarioController.js';
 import { requireLogin, requireAdmin } from '../middleware/auth.js';
@@ -82,6 +83,14 @@ router.get('/sugerencias', sugerencia.index);
 router.post('/sugerencias', sugerencia.crear);
 router.post('/sugerencias/:id/toggle', sugerencia.toggle);
 router.post('/sugerencias/:id/eliminar', sugerencia.eliminar);
+
+// --- Contingencias operativas ---
+router.get('/contingencias', contingencia.index);
+router.post('/contingencias', contingencia.crear);
+router.get('/contingencias/:id', contingencia.detalle);
+router.post('/contingencias/:id/aplicar', contingencia.aplicar);
+router.post('/contingencias/:id/sin-reemplazo', contingencia.sinReemplazo);
+router.get('/historial', contingencia.historial);
 
 // --- Descansos dominicales ---
 router.get('/dominicales', dominical.index);
