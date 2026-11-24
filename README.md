@@ -36,10 +36,13 @@ Ver [`docs/CARACTERIZACION.md`](docs/CARACTERIZACION.md).
 npm install                 # instala express, express-session, ejs, dotenv
 cp .env.example .env         # crea tu configuración local (ajusta SESSION_SECRET)
 npm run db:init              # crea la base de datos SQLite y carga datos de ejemplo
-node db/migrate_patrones.js  # patrones de ejemplo (y columna patron_id)
-node db/migrate_auth.js      # crea accesos: admin + una cuenta por colaborador
-node db/seed_cobertura.js    # (opcional) cobertura de ejemplo para probar el aforo
-npm run dev                  # arranca en http://localhost:3000 (recarga en caliente)
+node db/migrate_patrones.js      # patrones de ejemplo (y columna patron_id)
+node db/migrate_auth.js          # crea accesos: admin + una cuenta por colaborador
+node db/migrate_restricciones.js # restricciones individuales + "en inducción"
+node db/migrate_sugerencias.js   # tabla de sugerencias y solicitudes
+node db/migrate_colores.js       # colores corporativos por rol
+node db/seed_cobertura.js        # (opcional) cobertura de ejemplo para probar el aforo
+npm run dev                      # arranca en http://localhost:3000 (recarga en caliente)
 ```
 
 ## Acceso

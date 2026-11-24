@@ -1,10 +1,13 @@
 :root {
-  --bg: #f6f7f9;
+  /* Identidad FRISBY: rojo corporativo + amarillo de acento */
+  --bg: #fbf7f2;
   --surface: #ffffff;
-  --ink: #1f2430;
+  --ink: #221a16;
   --muted: #6b7280;
-  --brand: #c55a11;
-  --line: #e5e7eb;
+  --brand: #E4002B;        /* rojo Frisby */
+  --brand-dark: #B80022;
+  --accent: #FFC72C;       /* amarillo */
+  --line: #ece6df;
   --shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 
@@ -25,10 +28,12 @@ body {
   padding: .75rem 1.5rem;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+  border-top: 4px solid var(--brand);
   box-shadow: var(--shadow);
 }
-.brand { font-size: 1.1rem; }
-.brand span { color: var(--muted); margin-left: .35rem; }
+.brand { font-size: 1.15rem; text-decoration: none; color: var(--ink); letter-spacing: .3px; }
+.brand strong { color: var(--brand); }
+.brand span { color: var(--muted); margin-left: .35rem; font-weight: 500; }
 .topbar nav a {
   text-decoration: none;
   color: var(--ink);
@@ -124,7 +129,9 @@ table { width: 100%; border-collapse: collapse; background: var(--surface); bord
 th, td { text-align: left; padding: .55rem .75rem; border-bottom: 1px solid var(--line); }
 thead th { background: #fafafa; font-size: .85rem; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
 
-.btn { display: inline-block; margin-top: 1rem; background: var(--brand); color: #fff; padding: .5rem 1rem; border-radius: 6px; text-decoration: none; }
+.btn { display: inline-block; margin-top: 1rem; background: var(--brand); color: #fff; padding: .5rem 1rem; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font: inherit; font-weight: 600; transition: background .15s; }
+.btn:hover { background: var(--brand-dark); }
+.card-num { color: var(--brand); }
 
 .footer { text-align: center; color: var(--muted); padding: 2rem 1rem; }
 

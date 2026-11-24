@@ -11,17 +11,22 @@ import resources from './config/resources.js';
 import { cargarCuenta } from './middleware/auth.js';
 import { securityHeaders, csrf } from './middleware/security.js';
 
-// Menú de navegación derivado de los recursos CRUD
+// Menú de navegación, organizado por flujo de uso (requerimiento 6):
+// primero lo principal, al final la configuración.
 const menu = [
   { basePath: '/', label: 'Tablero' },
-  ...Object.values(resources).map((r) => ({ basePath: r.basePath, label: r.plural })),
-  { basePath: '/cobertura', label: 'Cobertura' },
+  { basePath: '/colaboradores', label: 'Colaboradores' },
   { basePath: '/sugerencias', label: 'Sugerencias' },
+  { basePath: '/cobertura', label: 'Cobertura' },
   { basePath: '/aforo', label: 'Aforo' },
-  { basePath: '/dominicales', label: 'Dominicales' },
   { basePath: '/patrones', label: 'Patrones' },
   { basePath: '/descansos', label: 'Descansos' },
   { basePath: '/incapacidades', label: 'Incapacidades' },
+  { basePath: '/dominicales', label: 'Dominicales' },
+  { basePath: '/sedes', label: 'Sedes' },
+  { basePath: '/areas', label: 'Áreas' },
+  { basePath: '/roles', label: 'Roles' },
+  { basePath: '/jornadas', label: 'Jornadas' },
 ];
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -50,7 +55,7 @@ app.use(cargarCuenta);
 // Variables disponibles en todas las vistas (antes del CSRF, para que su
 // página de error también disponga de ellas).
 app.use((req, res, next) => {
-  res.locals.appName = 'Horary Project';
+  res.locals.appName = 'FRISBY';
   res.locals.currentPath = req.path;
   res.locals.menu = menu;
   next();

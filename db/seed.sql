@@ -21,11 +21,11 @@ INSERT INTO rol (nombre, area_id, color) VALUES
   ('ADMINISTRADOR',          (SELECT id FROM area WHERE nombre='ADMINISTRACIÓN'), '#1f4e79'),
   ('ASISTENTE ADMON',        (SELECT id FROM area WHERE nombre='ADMINISTRACIÓN'), '#2e75b6'),
   ('ASISTENTE ADMON SUPER',  (SELECT id FROM area WHERE nombre='ADMINISTRACIÓN'), '#9dc3e6'),
-  ('AUX. PRODUCCIÓN CAPITÁN',(SELECT id FROM area WHERE nombre='COCINA'),         '#c55a11'),
-  ('AUX. PRODUCCIÓN',        (SELECT id FROM area WHERE nombre='COCINA'),         '#ed7d31'),
-  ('HOTS',                   (SELECT id FROM area WHERE nombre='COCINA'),         '#f4b183'),
-  ('ASESOR DE SERVICIO',     (SELECT id FROM area WHERE nombre='SALÓN'),          '#548235'),
-  ('AUX. BARRA',             (SELECT id FROM area WHERE nombre='SALÓN'),          '#70ad47'),
+  ('AUX. PRODUCCIÓN CAPITÁN',(SELECT id FROM area WHERE nombre='COCINA'),         '#14562D'),
+  ('AUX. PRODUCCIÓN',        (SELECT id FROM area WHERE nombre='COCINA'),         '#1E6B3A'),
+  ('HOTS',                   (SELECT id FROM area WHERE nombre='COCINA'),         '#2E8B57'),
+  ('ASESOR DE SERVICIO',     (SELECT id FROM area WHERE nombre='SALÓN'),          '#1F3C88'),
+  ('AUX. BARRA',             (SELECT id FROM area WHERE nombre='SALÓN'),          '#5BC2E7'),
   ('HOST',                   (SELECT id FROM area WHERE nombre='SALÓN'),          '#a9d08e'),
   ('DOMICILIARIO',           (SELECT id FROM area WHERE nombre='DOMICILIOS'),     '#7030a0');
 
