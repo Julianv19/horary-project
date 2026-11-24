@@ -16,7 +16,35 @@ import Descanso from '../models/descanso.js';
 import Ausencia from '../models/ausencia.js';
 import Patron from '../models/patron.js';
 import Dominical from '../models/dominical.js';
-import { fechasSemana, horaANumero, numeroAHora, DIAS } from '../lib/fechas.js';
+import { fechasSemana, horaANumero, numeroAHora, DIAS, parseYMD } from '../lib/fechas.js';
+import { turnoEfectivo, ventanaTurno, etiquetaTipo, PM_SPLIT } from '../lib/restricciones.js';
+
+// Roles administrativos que deben repartirse mañana / tarde-noche.
+const ROLES_ADMIN = new Set(['ADMINISTRADOR', 'ASISTENTE ADMON']);
+const esAdminRol = (c) => ROLES_ADMIN.has((c.rol || '').toUpperCase());
+
+// Asigna a los administrativos turnos opuestos (uno mañana, otro tarde-noche),
+// honrando primero sus restricciones y rotando por semana. Devuelve Map id->turno.
+function turnosAdministrativos(colaboradores, semanaInicio) {
+  const admins = colaboradores.filter(esAdminRol);
+  const map = new Map();
+  if (admins.length === 0) return map;
+  const usados = new Set();
+  const libres = [];
+  for (const a of admins) {
+    const t = turnoEfectivo(a);
+    if (t) { map.set(a.id, t); usados.add(t); } else libres.push(a);
+  }
+  const orden = ['MANANA', 'TARDE_NOCHE'];
+  const semanaIdx = Math.floor(parseYMD(semanaInicio).getTime() / (7 * 86400000));
+  let k = semanaIdx % 2;
+  for (const a of libres) {
+    let t = orden[k % 2];
+    if (admins.length >= 2 && usados.has(t)) t = orden[(k + 1) % 2];
+    map.set(a.id, t); usados.add(t); k++;
+  }
+  return map;
+}
 
 // ---- Reglas derivadas de la jornada ---------------------------------
 function horasObjetivoDia(j) {
@@ -117,6 +145,9 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
     }
   }
 
+  // Regla administrativa: reparto obligatorio mañana / tarde-noche.
+  const adminTurno = turnosAdministrativos(colaboradores, semanaInicio);
+
   // Precalcular reglas por colaborador. Ausencias y descansos tienen prioridad;
   // si tiene patrón, el patrón define los días y horas de trabajo.
   const plan = colaboradores.map((c, idx) => {
@@ -124,13 +155,15 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
     const fueraPorAusencia = ausentes.get(c.id) || new Set();
     const solicitados = new Set(forzados.get(c.id) || []);
     const patron = c.patron_id ? patronDias.get(c.patron_id) : null;
+    // Turno obligatorio: regla administrativa o restricción individual del colaborador.
+    const forcedTurno = adminTurno.get(c.id) || turnoEfectivo(c);
 
     if (patron) {
       // Trabaja los días que el patrón define con turnos (salvo ausencia/descanso).
       const trabaja = [0, 1, 2, 3, 4, 5, 6].filter(
         (d) => patron[d] && patron[d].length && !fueraPorAusencia.has(d) && !solicitados.has(d)
       );
-      return { c, target, patron, trabaja: new Set(trabaja) };
+      return { c, target, patron, forcedTurno, trabaja: new Set(trabaja) };
     }
 
     // Sin patrón: colocación automática con descanso.
@@ -145,7 +178,7 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
       descanso.add(d);
     }
     const trabaja = base.filter((d) => !descanso.has(d));
-    return { c, target, patron: null, trabaja: new Set(trabaja) };
+    return { c, target, patron: null, forcedTurno, trabaja: new Set(trabaja) };
   });
 
   const turnos = [];
@@ -189,10 +222,12 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
         continue;
       }
 
-      // Sin patrón: bloque contiguo que cubra la mayor demanda.
-      const L = Math.min(p.target, operLen);
+      // Sin patrón: bloque contiguo dentro de la ventana permitida (restricción
+      // individual o regla administrativa) que cubra la mayor demanda.
+      const [wOpen, wClose] = ventanaTurno(open, close, p.forcedTurno);
+      const L = Math.min(p.target, wClose - wOpen);
       if (L <= 0) continue;
-      const { start } = mejorVentana(open, close, L, rem[p.c.rol_id] || {});
+      const { start } = mejorVentana(wOpen, wClose, L, rem[p.c.rol_id] || {});
       turnos.push({
         usuario_id: p.c.id, fecha: fechas[dia],
         hora_inicio: numeroAHora(start), hora_fin: numeroAHora(start + L), orden: 0,
@@ -401,4 +436,67 @@ export function aplicarAusencias(sedeId, semanaInicio) {
   return { eliminados, programacion: prog };
 }
 
-export default { generar, reporte, aplicarAusencias };
+// ---- Validación de reglas obligatorias ------------------------------
+// Revisa los turnos ya generados contra las reglas que NO se pueden incumplir.
+// Devuelve { conflictos:[{colaborador,turno,motivo,severidad}], obligatorias }.
+export function validar(sedeId, semanaInicio) {
+  const prog = Programacion.find(sedeId, semanaInicio);
+  if (!prog) return { conflictos: [], obligatorias: 0, sinProgramacion: true };
+
+  const turnos = Programacion.turnosConDetalle(prog.id);
+  const colaboradores = Usuario.paraProgramacion(sedeId);
+  const byId = new Map(colaboradores.map((c) => [c.id, c]));
+  const fechas = fechasSemana(semanaInicio);
+  const fechaADia = Object.fromEntries(fechas.map((f, i) => [f, i]));
+  const conflictos = [];
+
+  // 1) Restricciones individuales (turno fijo médico/estudios/mañana/tarde-noche).
+  for (const t of turnos) {
+    const c = byId.get(t.usuario_id);
+    if (!c) continue;
+    const te = turnoEfectivo(c);
+    if (!te) continue;
+    const ini = horaANumero(t.hora_inicio);
+    const fin = horaANumero(t.hora_fin);
+    const dentro = te === 'MANANA' ? fin <= PM_SPLIT : ini >= PM_SPLIT;
+    if (!dentro) {
+      conflictos.push({
+        colaborador: c.nombre,
+        turno: `${DIAS[fechaADia[t.fecha]]} ${t.hora_inicio}–${t.hora_fin}`,
+        motivo: `Incompatible con su restricción (${etiquetaTipo(c.restriccion_tipo)} · ${te === 'MANANA' ? 'mañana' : 'tarde-noche'})`,
+        severidad: 'obligatoria',
+      });
+    }
+  }
+
+  // 2) Distribución administrativa: por día no puede haber dos en el mismo turno.
+  const adminIds = new Set(colaboradores.filter(esAdminRol).map((c) => c.id));
+  const porDiaAdmin = {};
+  for (const t of turnos) {
+    if (!adminIds.has(t.usuario_id)) continue;
+    const ini = horaANumero(t.hora_inicio);
+    const fin = horaANumero(t.hora_fin);
+    const turno = fin <= PM_SPLIT ? 'MANANA' : (ini >= PM_SPLIT ? 'TARDE_NOCHE' : 'MIXTO');
+    const dia = fechaADia[t.fecha];
+    (porDiaAdmin[dia] ??= {});
+    (porDiaAdmin[dia][turno] ??= new Set()).add(byId.get(t.usuario_id)?.nombre || `#${t.usuario_id}`);
+  }
+  for (const dia of Object.keys(porDiaAdmin)) {
+    for (const turno of ['MANANA', 'TARDE_NOCHE', 'MIXTO']) {
+      const nombres = porDiaAdmin[dia][turno];
+      if (nombres && nombres.size >= 2) {
+        conflictos.push({
+          colaborador: [...nombres].join(', '),
+          turno: `${DIAS[dia]} (${turno === 'MANANA' ? 'mañana' : turno === 'TARDE_NOCHE' ? 'tarde-noche' : 'turno solapado'})`,
+          motivo: 'Dos administrativos en el mismo turno (deben repartirse mañana / tarde-noche)',
+          severidad: 'obligatoria',
+        });
+      }
+    }
+  }
+
+  const obligatorias = conflictos.filter((x) => x.severidad === 'obligatoria').length;
+  return { conflictos, obligatorias };
+}
+
+export default { generar, reporte, aplicarAusencias, validar };

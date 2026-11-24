@@ -14,7 +14,10 @@ export const Usuario = {
               jornada_tipo.codigo AS jornada_codigo,
               jornada_tipo.nombre AS jornada,
               u.patron_id         AS patron_id,
-              patron.nombre       AS patron
+              patron.nombre       AS patron,
+              u.restriccion_tipo  AS restriccion_tipo,
+              u.restriccion_turno AS restriccion_turno,
+              u.es_nuevo          AS es_nuevo
       FROM usuario u
       JOIN sede         ON sede.id = u.sede_id
       JOIN rol          ON rol.id = u.rol_id
@@ -61,6 +64,7 @@ export const Usuario = {
   paraProgramacion(sedeId) {
     return db.prepare(`
       SELECT  u.id, u.nombre, u.rol_id, u.patron_id,
+              u.restriccion_tipo, u.restriccion_turno, u.es_nuevo,
               rol.nombre AS rol, area.nombre AS area, area.orden AS area_orden,
               jt.codigo AS jornada_codigo, jt.nombre AS jornada,
               jt.horas_dia_exactas, jt.horas_dia_min, jt.horas_dia_max,
@@ -75,24 +79,30 @@ export const Usuario = {
   },
   create(d) {
     return db.prepare(`
-      INSERT INTO usuario (nombre, email, sede_id, rol_id, jornada_tipo_id, patron_id, activo)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO usuario (nombre, email, sede_id, rol_id, jornada_tipo_id, patron_id,
+                           restriccion_tipo, restriccion_turno, restriccion_obs, es_nuevo, activo)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       d.nombre?.trim(), d.email?.trim() || null,
       Number(d.sede_id), Number(d.rol_id), Number(d.jornada_tipo_id),
       d.patron_id ? Number(d.patron_id) : null,
+      d.restriccion_tipo || 'NINGUNA', d.restriccion_turno || null,
+      d.restriccion_obs?.trim() || null, d.es_nuevo ? 1 : 0,
       d.activo ? 1 : 0
     );
   },
   update(id, d) {
     return db.prepare(`
       UPDATE usuario SET nombre = ?, email = ?, sede_id = ?, rol_id = ?,
-             jornada_tipo_id = ?, patron_id = ?, activo = ?
+             jornada_tipo_id = ?, patron_id = ?, restriccion_tipo = ?,
+             restriccion_turno = ?, restriccion_obs = ?, es_nuevo = ?, activo = ?
       WHERE id = ?
     `).run(
       d.nombre?.trim(), d.email?.trim() || null,
       Number(d.sede_id), Number(d.rol_id), Number(d.jornada_tipo_id),
       d.patron_id ? Number(d.patron_id) : null,
+      d.restriccion_tipo || 'NINGUNA', d.restriccion_turno || null,
+      d.restriccion_obs?.trim() || null, d.es_nuevo ? 1 : 0,
       d.activo ? 1 : 0, id
     );
   },

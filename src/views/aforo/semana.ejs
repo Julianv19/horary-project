@@ -52,6 +52,21 @@
     <% } %>
   </div>
 
+  <!-- ===== Validación de reglas obligatorias ===== -->
+  <% if (validacion && validacion.conflictos && validacion.conflictos.length) { %>
+    <div class="alert err validacion">
+      <strong>⚠️ <%= validacion.obligatorias %> conflicto(s) por resolver</strong>
+      (no se puede publicar hasta corregirlos):
+      <ul>
+        <% validacion.conflictos.forEach(cf => { %>
+          <li><strong><%= cf.colaborador %></strong> — <%= cf.turno %>: <%= cf.motivo %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } else if (validacion) { %>
+    <div class="alert ok validacion">✅ Sin conflictos con restricciones ni con la regla administrativa.</div>
+  <% } %>
+
   <!-- ===== Resumen de horas por colaborador ===== -->
   <h2>Horas por colaborador</h2>
   <div class="scroll-x">

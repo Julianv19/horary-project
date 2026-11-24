@@ -44,12 +44,13 @@ export function ver(req, res) {
   const semana = req.query.semana ? lunesDe(req.query.semana) : semanaPorDefecto();
 
   const data = aforo.reporte(sedeId, semana);
+  const validacion = data ? aforo.validar(sedeId, semana) : null;
   res.render('aforo/semana', {
     titulo: 'Horario semanal',
     sede: Sede.find(sedeId),
     sedes, sedeId, semana,
     fechas: fechasSemana(semana),
-    data,
+    data, validacion,
     flash: { ok: req.query.ok || null, err: req.query.err || null },
   });
 }
@@ -59,6 +60,15 @@ export function publicar(req, res) {
   const sedeId = Number(req.body.sede_id);
   const semana = lunesDe(req.body.semana);
   const estado = req.body.estado === 'PUBLICADA' ? 'PUBLICADA' : 'BORRADOR';
+
+  // No se puede PUBLICAR un horario con conflictos obligatorios.
+  if (estado === 'PUBLICADA') {
+    const { obligatorias } = aforo.validar(sedeId, semana);
+    if (obligatorias > 0) {
+      return res.redirect(`/aforo/ver?sede=${sedeId}&semana=${semana}&err=${encodeURIComponent(`No se puede publicar: hay ${obligatorias} conflicto(s) obligatorio(s) por resolver.`)}`);
+    }
+  }
+
   const prog = Programacion.find(sedeId, semana);
   if (prog) Programacion.setEstado(prog.id, estado);
   const msg = estado === 'PUBLICADA' ? 'Horario publicado.' : 'Horario vuelto a borrador.';

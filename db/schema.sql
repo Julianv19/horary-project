@@ -66,6 +66,10 @@ CREATE TABLE IF NOT EXISTS usuario (
   rol_id           INTEGER NOT NULL REFERENCES rol(id)          ON DELETE RESTRICT,
   jornada_tipo_id  INTEGER NOT NULL REFERENCES jornada_tipo(id) ON DELETE RESTRICT,
   patron_id        INTEGER REFERENCES patron(id)                ON DELETE SET NULL,
+  restriccion_tipo  TEXT NOT NULL DEFAULT 'NINGUNA', -- NINGUNA|FIJO_MANANA|FIJO_TARDE_NOCHE|MEDICA|ESTUDIOS
+  restriccion_turno TEXT,                            -- MANANA|TARDE_NOCHE (para médica/estudios)
+  restriccion_obs   TEXT,                            -- observaciones adicionales
+  es_nuevo          INTEGER NOT NULL DEFAULT 0,      -- en inducción (para sugerencias)
   activo           INTEGER NOT NULL DEFAULT 1
 );
 

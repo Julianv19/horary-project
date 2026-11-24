@@ -11,6 +11,10 @@ import Rol from '../models/rol.js';
 import Jornada from '../models/jornada.js';
 import Usuario from '../models/usuario.js';
 import Patron from '../models/patron.js';
+import { RESTRICCION_TIPOS, RESTRICCION_TURNOS } from '../lib/restricciones.js';
+
+const opcionesRestriccion = () => RESTRICCION_TIPOS.map((t) => ({ value: t.val, label: t.label }));
+const opcionesTurnoRestriccion = () => RESTRICCION_TURNOS.map((t) => ({ value: t.val, label: t.label }));
 
 const opcionesSede = () =>
   Sede.activas().map((s) => ({ value: s.id, label: s.nombre }));
@@ -39,6 +43,7 @@ export const resources = {
       { key: 'rol', label: 'Rol' },
       { key: 'jornada_codigo', label: 'Jornada' },
       { key: 'patron', label: 'Patrón' },
+      { key: 'restriccion_tipo', label: 'Restricción' },
       { key: 'sede', label: 'Sede' },
       { key: 'activo', label: 'Activo', type: 'bool' },
     ],
@@ -49,6 +54,10 @@ export const resources = {
       { name: 'rol_id', label: 'Rol', type: 'select', required: true, options: opcionesRol() },
       { name: 'jornada_tipo_id', label: 'Jornada', type: 'select', required: true, options: opcionesJornada() },
       { name: 'patron_id', label: 'Patrón (opcional)', type: 'select', options: opcionesPatron(), help: 'Si se asigna, el motor seguirá este patrón de turnos.' },
+      { name: 'restriccion_tipo', label: 'Restricción', type: 'select', options: opcionesRestriccion(), help: 'El generador respeta esta restricción antes de asignar turnos.' },
+      { name: 'restriccion_turno', label: 'Turno de la restricción', type: 'select', options: opcionesTurnoRestriccion(), help: 'Para restricción médica o por estudios: fija mañana o tarde-noche.' },
+      { name: 'restriccion_obs', label: 'Observaciones de la restricción', type: 'textarea' },
+      { name: 'es_nuevo', label: 'En inducción (colaborador nuevo)', type: 'checkbox' },
       { name: 'activo', label: 'Activo', type: 'checkbox', default: true },
     ],
   },
