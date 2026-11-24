@@ -12,7 +12,12 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/"><img src="/img/frisby-logo.jpg" alt="FRISBY"><span>Horarios</span></a>
-    <nav>
+    <% const hayNav = (typeof cuenta !== 'undefined' && cuenta); %>
+    <% if (hayNav) { %>
+      <input type="checkbox" id="navToggle" class="nav-toggle">
+      <label for="navToggle" class="hamburger" aria-label="Abrir menú">☰</label>
+    <% } %>
+    <nav class="main-nav">
       <% if (typeof cuenta !== 'undefined' && cuenta && cuenta.es_admin) { %>
         <% (typeof menu !== 'undefined' ? menu : []).forEach(m => { %>
           <% const act = m.basePath === '/' ? currentPath === '/' : currentPath.startsWith(m.basePath); %>
@@ -22,6 +27,7 @@
         <a href="/mi-horario" class="<%= currentPath === '/mi-horario' ? 'active' : '' %>">Mi horario</a>
       <% } %>
     </nav>
+    <% if (hayNav) { %><label for="navToggle" class="nav-backdrop" aria-label="Cerrar menú"></label><% } %>
     <div class="userbox">
       <% if (typeof cuenta !== 'undefined' && cuenta) { %>
         <span class="who"><%= cuenta.nombre || cuenta.username %><% if (cuenta.es_admin) { %> <small>(admin)</small><% } %></span>
