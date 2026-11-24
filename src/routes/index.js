@@ -9,6 +9,7 @@ import * as descanso from '../controllers/descansoController.js';
 import * as ausencia from '../controllers/ausenciaController.js';
 import * as patron from '../controllers/patronController.js';
 import * as dominical from '../controllers/dominicalController.js';
+import * as sugerencia from '../controllers/sugerenciaController.js';
 import * as auth from '../controllers/authController.js';
 import * as miHorario from '../controllers/miHorarioController.js';
 import { requireLogin, requireAdmin } from '../middleware/auth.js';
@@ -67,6 +68,12 @@ router.post('/patrones/:id', patron.actualizar);
 router.post('/patrones/:id/eliminar', patron.eliminar);
 router.post('/patrones/:id/turnos', patron.addTurno);
 router.post('/patrones/:id/turnos/:tid/eliminar', patron.removeTurno);
+
+// --- Sugerencias y solicitudes ---
+router.get('/sugerencias', sugerencia.index);
+router.post('/sugerencias', sugerencia.crear);
+router.post('/sugerencias/:id/toggle', sugerencia.toggle);
+router.post('/sugerencias/:id/eliminar', sugerencia.eliminar);
 
 // --- Descansos dominicales ---
 router.get('/dominicales', dominical.index);

@@ -16,6 +16,7 @@ import Descanso from '../models/descanso.js';
 import Ausencia from '../models/ausencia.js';
 import Patron from '../models/patron.js';
 import Dominical from '../models/dominical.js';
+import Sugerencia from '../models/sugerencia.js';
 import { fechasSemana, horaANumero, numeroAHora, DIAS, parseYMD } from '../lib/fechas.js';
 import { turnoEfectivo, ventanaTurno, etiquetaTipo, PM_SPLIT } from '../lib/restricciones.js';
 
@@ -148,6 +149,16 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
   // Regla administrativa: reparto obligatorio mañana / tarde-noche.
   const adminTurno = turnosAdministrativos(colaboradores, semanaInicio);
 
+  // Sugerencias (preferencia suave de turno; no sobrescriben lo obligatorio).
+  const opuesto = (t) => (t === 'MANANA' ? 'TARDE_NOCHE' : 'MANANA');
+  const sPrioriza = new Map();
+  const sEvita = new Map();
+  for (const s of Sugerencia.activasPorSede(sedeId)) {
+    if (s.tipo === 'PRIORIZAR_TURNO' && s.turno) sPrioriza.set(s.usuario_id, s.turno);
+    else if (s.tipo === 'EVITAR_TURNO' && s.turno) sEvita.set(s.usuario_id, s.turno);
+  }
+  const turnoSugerido = (id) => sPrioriza.get(id) || (sEvita.has(id) ? opuesto(sEvita.get(id)) : null);
+
   // Precalcular reglas por colaborador. Ausencias y descansos tienen prioridad;
   // si tiene patrón, el patrón define los días y horas de trabajo.
   const plan = colaboradores.map((c, idx) => {
@@ -155,8 +166,9 @@ export function generar(sedeId, semanaInicio, opciones = {}) {
     const fueraPorAusencia = ausentes.get(c.id) || new Set();
     const solicitados = new Set(forzados.get(c.id) || []);
     const patron = c.patron_id ? patronDias.get(c.patron_id) : null;
-    // Turno obligatorio: regla administrativa o restricción individual del colaborador.
-    const forcedTurno = adminTurno.get(c.id) || turnoEfectivo(c);
+    // Turno: obligatorio (regla administrativa o restricción) y, si no lo hay,
+    // la preferencia suave de las sugerencias.
+    const forcedTurno = adminTurno.get(c.id) || turnoEfectivo(c) || turnoSugerido(c.id);
 
     if (patron) {
       // Trabaja los días que el patrón define con turnos (salvo ausencia/descanso).
@@ -495,8 +507,57 @@ export function validar(sedeId, semanaInicio) {
     }
   }
 
+  // 3) Sugerencias: "evitar turno" incumplido (no bloquea).
+  const evita = new Map();
+  for (const s of Sugerencia.activasPorSede(sedeId)) {
+    if (s.tipo === 'EVITAR_TURNO' && s.turno) evita.set(s.usuario_id, s.turno);
+  }
+  for (const t of turnos) {
+    const tev = evita.get(t.usuario_id);
+    if (!tev) continue;
+    const ini = horaANumero(t.hora_inicio);
+    const fin = horaANumero(t.hora_fin);
+    const enTurno = tev === 'MANANA' ? ini < PM_SPLIT : fin > PM_SPLIT;
+    if (enTurno) {
+      conflictos.push({
+        colaborador: byId.get(t.usuario_id)?.nombre,
+        turno: `${DIAS[fechaADia[t.fecha]]} ${t.hora_inicio}–${t.hora_fin}`,
+        motivo: `Sugerencia: se pidió evitar el turno de ${tev === 'MANANA' ? 'mañana' : 'tarde-noche'}`,
+        severidad: 'sugerencia',
+      });
+    }
+  }
+
+  // 4) Inducción: colaborador nuevo sin personal experimentado en su área ese día.
+  if (colaboradores.some((c) => c.es_nuevo)) {
+    const porDiaArea = {};
+    for (const t of turnos) {
+      const c = byId.get(t.usuario_id);
+      if (!c) continue;
+      const dia = fechaADia[t.fecha];
+      (porDiaArea[dia] ??= {});
+      (porDiaArea[dia][c.area] ??= { nuevos: new Set(), exp: new Set() });
+      if (c.es_nuevo) porDiaArea[dia][c.area].nuevos.add(c.nombre);
+      else porDiaArea[dia][c.area].exp.add(c.nombre);
+    }
+    for (const dia of Object.keys(porDiaArea)) {
+      for (const area of Object.keys(porDiaArea[dia])) {
+        const g = porDiaArea[dia][area];
+        if (g.nuevos.size && g.exp.size === 0) {
+          conflictos.push({
+            colaborador: [...g.nuevos].join(', '),
+            turno: `${DIAS[dia]} (${area})`,
+            motivo: 'Colaborador nuevo sin personal experimentado en su área ese día',
+            severidad: 'sugerencia',
+          });
+        }
+      }
+    }
+  }
+
   const obligatorias = conflictos.filter((x) => x.severidad === 'obligatoria').length;
-  return { conflictos, obligatorias };
+  const sugerencias = conflictos.filter((x) => x.severidad === 'sugerencia').length;
+  return { conflictos, obligatorias, sugerencias };
 }
 
 export default { generar, reporte, aplicarAusencias, validar };

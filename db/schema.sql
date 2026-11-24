@@ -186,6 +186,22 @@ CREATE TABLE IF NOT EXISTS cuenta (
   nombre        TEXT
 );
 
+-- ---------------------------------------------------------------------
+--  SUGERENCIA  (peticiones previas a la generación del horario)
+--  tipo: PRIORIZAR_TURNO | EVITAR_TURNO | ACOMPANAR | NOTA
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS sugerencia (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  sede_id         INTEGER REFERENCES sede(id)    ON DELETE CASCADE,
+  usuario_id      INTEGER REFERENCES usuario(id) ON DELETE CASCADE,
+  tipo            TEXT NOT NULL,
+  turno           TEXT,
+  otro_usuario_id INTEGER REFERENCES usuario(id) ON DELETE SET NULL,
+  texto           TEXT,
+  activa          INTEGER NOT NULL DEFAULT 1,
+  creado_en       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Índices útiles
 CREATE INDEX IF NOT EXISTS idx_turno_usuario  ON turno(usuario_id, fecha);
 CREATE INDEX IF NOT EXISTS idx_turno_prog     ON turno(programacion_id);

@@ -1,0 +1,80 @@
+<%- include('../partials/header') %>
+
+<section class="hero"><h1>Sugerencias y solicitudes</h1></section>
+<p class="muted">Registra peticiones antes de generar (priorizar o evitar turnos, acompañar a un
+colaborador nuevo, notas). El generador las tiene en cuenta como preferencia, pero
+<strong>nunca por encima</strong> de restricciones médicas, académicas ni de las reglas obligatorias.</p>
+
+<% if (flash && flash.ok) { %><div class="alert ok"><%= flash.ok %></div><% } %>
+<% if (flash && flash.err) { %><div class="alert err"><%= flash.err %></div><% } %>
+
+<form method="post" action="/sugerencias" class="form-card inline">
+  <%- include('../partials/csrf') %>
+  <div class="field">
+    <label for="usuario_id">Colaborador <span class="req">*</span></label>
+    <select name="usuario_id" id="usuario_id" required>
+      <option value="">— Seleccionar —</option>
+      <% usuarios.forEach(u => { %><option value="<%= u.id %>"><%= u.nombre %> · <%= u.sede %></option><% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="tipo">Tipo <span class="req">*</span></label>
+    <select name="tipo" id="tipo" required>
+      <% tipos.forEach(t => { %><option value="<%= t.val %>"><%= t.label %></option><% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="turno">Turno</label>
+    <select name="turno" id="turno">
+      <% turnos.forEach(t => { %><option value="<%= t.val %>"><%= t.label %></option><% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="otro_usuario_id">Acompañar a</label>
+    <select name="otro_usuario_id" id="otro_usuario_id">
+      <option value="">—</option>
+      <% usuarios.forEach(u => { %><option value="<%= u.id %>"><%= u.nombre %></option><% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="texto">Nota</label>
+    <input type="text" name="texto" id="texto" placeholder="Opcional">
+  </div>
+  <div class="form-actions"><button type="submit" class="btn">Registrar</button></div>
+</form>
+
+<h2>Registradas</h2>
+<% if (sugerencias.length === 0) { %>
+  <p class="muted">No hay sugerencias todavía.</p>
+<% } else { %>
+  <table>
+    <thead><tr><th>Colaborador</th><th>Tipo</th><th>Turno / Acompaña</th><th>Nota</th><th>Activa</th><th class="acciones">Acciones</th></tr></thead>
+    <tbody>
+      <% sugerencias.forEach(s => { %>
+        <tr class="<%= s.activa ? '' : 'inactiva' %>">
+          <td><%= s.usuario %></td>
+          <td><%= { PRIORIZAR_TURNO:'Priorizar turno', EVITAR_TURNO:'Evitar turno', ACOMPANAR:'Acompañar', NOTA:'Nota' }[s.tipo] || s.tipo %></td>
+          <td>
+            <% if (s.turno) { %><%= s.turno === 'MANANA' ? 'Mañana' : 'Tarde-noche' %><% } %>
+            <% if (s.otro_usuario) { %><%= s.turno ? ' · ' : '' %>con <%= s.otro_usuario %><% } %>
+            <% if (!s.turno && !s.otro_usuario) { %>—<% } %>
+          </td>
+          <td><%= s.texto || '—' %></td>
+          <td><span class="pill <%= s.activa ? 'yes' : 'no' %>"><%= s.activa ? 'Sí' : 'No' %></span></td>
+          <td class="acciones">
+            <form method="post" action="/sugerencias/<%= s.id %>/toggle">
+              <%- include('../partials/csrf') %>
+              <button class="link" type="submit"><%= s.activa ? 'Desactivar' : 'Activar' %></button>
+            </form>
+            <form method="post" action="/sugerencias/<%= s.id %>/eliminar" onsubmit="return confirm('¿Eliminar esta sugerencia?');">
+              <%- include('../partials/csrf') %>
+              <button class="link danger" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>

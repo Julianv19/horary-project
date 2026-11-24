@@ -135,6 +135,9 @@ thead th { background: #fafafa; font-size: .85rem; text-transform: uppercase; le
 .alert { padding: .7rem 1rem; border-radius: 8px; margin: 1rem 0; font-size: .95rem; }
 .alert.ok  { background: #e7f6ec; color: #1e7a3d; border: 1px solid #b7e2c4; }
 .alert.err { background: #fdecec; color: #b4231f; border: 1px solid #f2b8b6; }
+.alert.warn { background: #fff6e6; color: #9a6700; border: 1px solid #f2d79b; }
+.alert.validacion ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+tr.inactiva { opacity: .5; }
 
 /* --- Píldoras y muestras --- */
 .pill { padding: .1rem .5rem; border-radius: 999px; font-size: .78rem; font-weight: 600; }
